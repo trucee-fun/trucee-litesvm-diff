@@ -1,0 +1,165 @@
+{
+ "wsol": false,
+ "surplus": "13170016",
+ "claims": [
+  {
+   "trader": 0,
+   "basis": "11993710321",
+   "share": "3343614"
+  },
+  {
+   "trader": 1,
+   "basis": "11688979554",
+   "share": "3258661"
+  },
+  {
+   "trader": 2,
+   "basis": "11688979554",
+   "share": "3258661"
+  },
+  {
+   "trader": 3,
+   "basis": "11688979554",
+   "share": "3258661"
+  },
+  {
+   "trader": 4,
+   "basis": "180854159",
+   "share": "50418"
+  }
+ ],
+ "chain": "https://api.devnet.solana.com",
+ "seed": 505,
+ "accounts": {
+  "config": "FvQBHbUe69hGHN7jCS2AgPf3ua999ZE5ZVb7Zccj2UFX",
+  "pool": "6BUQkwQCY1Q8x5ZxsQSYZp2RbmWJSRC49JTWfR55PR2B",
+  "base_mint": "Fz7YvHZpDS5rJHd7yLqziYwiys92kRNbJT72qjFdQHmv",
+  "quote_mint": "3L83Z8krkkTcTbnfzCrATyZAZwfEcEHcTt9PtiH5MWyA",
+  "market": "HbHstESxNTjztc1kPQsjzsqbjz8QZprZZCGYTXt94Pzd",
+  "buffer": "14YkohRdJS6B5V4Mzf94JderQgN1vFmV8xN4Ha1nqr9J"
+ },
+ "signatures": {
+  "create quote mint": "59GUyE2DnBnZkYFk4LT4Z6BLqAtSG1z7JbZuhHx29CH9xDWw3ZoPsrivJXzySx9wUdfLhf8EFsPkuZjdrLZPZYTZ",
+  "create_config_with_transfer_hook": "5GL69teNLQv2SMNdx5edWAbVSuviqN94gSoUqxMHw2CRqAk1nPHV4LPYubyi1KPtKTnmhNpXZTyxSp66r9pEr4Az",
+  "initialize pool with hook": "53gYFVsotQgR9rVvGGuN8Zexhy2bqdxS63bv1T8CSBkZL7fDNWT89cUyNBphJH5KwBeKt1HmwiVj6698rF5vxXG8",
+  "hook: init extra metas": "2yNsVcpHZvBX1RXGP4yeRnWWYMa8VSdXpQipuoZ92bWEWkNaoQVWkt4ZqFiPEcrtahqdpcH39VAp2XM3PpLG6Ftc",
+  "router: init market": "dqb3ckx3P2ogPX4SbQccLbZxLhMevre2CiDPSF85gJeknYVtH3hUMJXZmxHbPXG9VTprzKVswzKjTpRx4DAb6SH",
+  "trader 0 setup": "2xdQR2mSCyCvaA474J9XAqwt9mbkzuEdvk5WVtviZeVEvwUs4sczTaFHCmuBsfkn23iHx5FjY52nhq6Mbh521vTb",
+  "trader 1 setup": "3Vb5abcMFU6py3ZiAxh7aJ1rjPT5mMVx8UswKM73dXmzBbu2sSXZ3hE6jdwWYemwv8PSYn5CLHTpeUZNqEjv3Vky",
+  "trader 2 setup": "5ohcj39uEuQLmTQxAuKxtJm8sH196Qd98dWdPT7qpYRvnACQo4PfaLQEHL1G1BUuc2L8KsbamfHqJLm1bSDDVrFR",
+  "trader 3 setup": "5u9DpPoAZgiCHq4y2J2fKC1njqLSGbazNKonepPokNXXGSCdDuKE8KokkW5jRmZSxAWShaXTgLqdB7Y3Cvt91dJ4",
+  "trader 4 setup": "2gAinespANsbyMirVUcFs6qJKFzJzUgoNLrmM9CNhSYhU12Lop7yfEc7JoPfB2fPAyHTj8RYr41hE5vEsGDFFUNb",
+  "first router buy": "2yHjwqp3ZCJgA7fZARqeeHLxfSJvuWYbLG4CKpNGZV74zGtjWAtjTzTTK4GWrq7PXj6Sn84Y9yjtgkfoHLL2uMnu",
+  "router: finalize": "4eDTEvPL9KWu8y9mj9LvezSZDBusSH7oDFD2DvQ4tfKGSfWXgrzFKNcKRmx2sesLPphJSqVyAtn47aKN7k6aCxWP"
+ },
+ "ops": [
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "15171904586391",
+   "ok": true,
+   "signature": "8WZTQyG3sHMPHyaV6Sc8TceSu53Ac6pWEyiwPqbbXEw8teZRgmct7Q4fZ5VdTLCFQeodSBnfJetsVgaYyBSWUiS",
+   "refund": "636516180",
+   "basis_after": "347054345"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "4620550922",
+   "ok": true,
+   "signature": "2X4Ni8ZBfSjrK8AoSkECbRxuxQHPVKy331fr1L6bQpa9cxLYCkDWKsoou4ZfDqu2uHKj2LQ8QoyVQk7Pu9mk2oFB",
+   "tokens_out": "65772271579967",
+   "basis_after": "4921399741"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "73961883708580",
+   "ok": true,
+   "signature": "vgSBKevfLNuHddrTA4EFRjSFm4GFviyB1bwY57KPTp5fJREPAfPA4QB22BmUhZYonPZ2dLfn5MPEsd7xU8bMFdF",
+   "refund": "4872185741",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "134557299",
+   "ok": true,
+   "signature": "59EFiVrs6NvAi3Xt3Keb43esJ8bndRJJmjsRGhMzUk5SahLMEk9qED9ELssukQgDtfhkj38urZuWSQJTrkLZjvbo",
+   "tokens_out": "3479743267440",
+   "basis_after": "133211710"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "13713573",
+   "ok": true,
+   "signature": "2zwcqUmhiAcysW1ACydmPYifbmLs79dvmktbuLeDcoembndEta9KjW76VE14ZsfZELB6w3L7m34ToNoePWM1pPbe",
+   "tokens_out": "348153491645",
+   "basis_after": "13576421"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "348153491645",
+   "ok": true,
+   "signature": "5SnAgivCbM5hDGACy52KivkaHKZVaDDgMkyMSUBVYKy3Ur4gYojDBFXCPGrLdXqabCisaEP4wXtpEwBDT8Ssf3wL",
+   "refund": "13440654",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "7977583295",
+   "ok": true,
+   "signature": "5g4quNSTTu4Gd8xvMJ47VKULjQeatVKmGByDUAuT7SygYvvkpo2i5E2hphoi5bv5wVYcWfDXmyqscnzJVF8pjLTQ",
+   "tokens_out": "81813050100874",
+   "basis_after": "7897807446"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "29011596149994",
+   "ok": true,
+   "signature": "hXbVkVbP2EKVfvNf448VDQU3W9yrcAF2o56Z3J1isDG4kertK6PpXNLKQeGEtVoqEgncjtPBzQ4XmeeWdiLN6yD",
+   "refund": "2772622700",
+   "basis_after": "5097178454"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "76343656",
+   "ok": true,
+   "signature": "3DUcsfdfDZAjh3vT97hNis4p4s2Q65RmZLq7n8hBJvvmpoWEFdhQHwDoTGpTiA3NJX65qmtgjK2ZSca73Ay3McCQ",
+   "tokens_out": "1053848201245",
+   "basis_after": "208791913"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "52801453950880",
+   "ok": true,
+   "signature": "4Do6CCUUu1rWNBSTqCeMAvXRCQPNRmpkp1qJCiRMrzPKVY8GMfntQyhQ9GJq16HDQPhNtpH6f9EE3zLJVSAMiKJZ",
+   "refund": "5046206667",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "307808872",
+   "ok": true,
+   "signature": "2vepNat9mNPusKVT2KR9cwbTjcfkMEftcufB9S3nwCHibwdX3iU99XPrFx9DbWVhUvVx9nhr1bicGTLz57bjpap5",
+   "tokens_out": "7465175958813",
+   "basis_after": "304730767"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "4533591468685",
+   "ok": true,
+   "signature": "1Lds1ZCThs64MUUQ5XcvYWthGg3kmw4wBeNnb3LuuEp3aa5NVSyKtQrSrXEtZXsYBZofrtkzMASUvWiTKxZSk6N",
+   "refund": "206703991",
+   "basis_after": "0"
+  }
+ ]
+}

@@ -1,0 +1,140 @@
+{
+ "wsol": true,
+ "surplus": "10586849",
+ "claims": [
+  {
+   "trader": 0,
+   "basis": "360112465",
+   "share": "3116805"
+  },
+  {
+   "trader": 1,
+   "basis": "300093732",
+   "share": "2597337"
+  },
+  {
+   "trader": 2,
+   "basis": "333686627",
+   "share": "2888087"
+  },
+  {
+   "trader": 3,
+   "basis": "229300749",
+   "share": "1984618"
+  },
+  {
+   "trader": 4,
+   "basis": "0",
+   "share": "0"
+  }
+ ],
+ "chain": "litesvm",
+ "seed": 4242,
+ "accounts": {
+  "config": "D1vfDLtsTt9U4wCKog4CZxtYvodzVBn1VE7UL7AzUmB5",
+  "pool": "8dnZFYqDPH2raSV1wsyEoJ8mjPZSDfCuxtmW4Dxf2aiE",
+  "base_mint": "Dgcqqo3HSHUqAj7ta31rT7L81E8wG3uw1fDYGwv4N5SR",
+  "quote_mint": "So11111111111111111111111111111111111111112",
+  "market": "C9B21Sbk5Xde9Uja6w7Y8u4LW1qA1vzLEErGpL38aKc7",
+  "buffer": "5i3epqLWEyUVnaR57Mx2m96oXFpNs5bKSdqagiHenz6t"
+ },
+ "signatures": {},
+ "ops": [
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "3644452",
+   "ok": true,
+   "tokens_out": "7585437244190",
+   "basis_after": "3607991"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "56056658",
+   "ok": true,
+   "tokens_out": "108080880146216",
+   "basis_after": "55496075"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "590713",
+   "ok": true,
+   "tokens_out": "1059393338288",
+   "basis_after": "584789"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "33852230",
+   "ok": true,
+   "tokens_out": "57498603255461",
+   "basis_after": "33513691"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "81620519",
+   "ok": true,
+   "tokens_out": "108562682726845",
+   "basis_after": "136300372"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "11079678",
+   "ok": true,
+   "tokens_out": "10136256013397",
+   "basis_after": "14576856"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "216643562873061",
+   "ok": true,
+   "refund": "134937366",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "2597971",
+   "ok": true,
+   "tokens_out": "4902400698276",
+   "basis_after": "2571975"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "627453729762",
+   "ok": true,
+   "refund": "342890",
+   "basis_after": "238433"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "4902400698276",
+   "ok": true,
+   "refund": "2546253",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "80021",
+   "ok": true,
+   "tokens_out": "151608011417",
+   "basis_after": "33592895"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "431939608526",
+   "ok": true,
+   "refund": "236046",
+   "basis_after": "0"
+  }
+ ]
+}

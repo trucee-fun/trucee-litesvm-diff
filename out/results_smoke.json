@@ -1,0 +1,1061 @@
+[
+ {
+  "seed": 0,
+  "onchain": {
+   "sqrt_start_price": "126043366895651040",
+   "migration_sqrt_price": "889368534656081803",
+   "migration_quote_threshold": "107648206627",
+   "cliff_fee_numerator": "50000000",
+   "curve": [
+    {
+     "sqrt_price": "146689835128045760",
+     "liquidity": "32825991674203544178147016572928"
+    },
+    {
+     "sqrt_price": "170718287363011552",
+     "liquidity": "56925818904522639401564470509568"
+    },
+    {
+     "sqrt_price": "198682707733083936",
+     "liquidity": "26361784101515222451108209229824"
+    },
+    {
+     "sqrt_price": "231227825453823136",
+     "liquidity": "37384512522840795892012516638720"
+    },
+    {
+     "sqrt_price": "269103979274994944",
+     "liquidity": "44177184930630274789826537455616"
+    },
+    {
+     "sqrt_price": "313184416795455168",
+     "liquidity": "64833536419849351519427192946688"
+    },
+    {
+     "sqrt_price": "364485427483321408",
+     "liquidity": "39171330405101918153118278746112"
+    },
+    {
+     "sqrt_price": "424189773575054272",
+     "liquidity": "24995752170843051303527350534144"
+    },
+    {
+     "sqrt_price": "493673959060790016",
+     "liquidity": "55145076910528090883133376823296"
+    },
+    {
+     "sqrt_price": "574539965451649344",
+     "liquidity": "46402729240205236747079746846720"
+    },
+    {
+     "sqrt_price": "668652186007921536",
+     "liquidity": "23002733805286162498105049612288"
+    },
+    {
+     "sqrt_price": "778180409959309696",
+     "liquidity": "64937436253326590178776756256768"
+    },
+    {
+     "sqrt_price": "905649847733040000",
+     "liquidity": "69583511062797525764023424909312"
+    }
+   ]
+  },
+  "ops": [
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "1030049",
+    "ok": true,
+    "quote_delta": "-1030049",
+    "base_delta": "20957802798",
+    "sqrt_price": "126053510746058541",
+    "quote_reserve": "978546"
+   },
+   {
+    "kind": "buy",
+    "trader": 2,
+    "amount": "40826255308",
+    "ok": true,
+    "quote_delta": "-40826255308",
+    "base_delta": "233700765374751",
+    "sqrt_price": "445328073236860870",
+    "quote_reserve": "38785921088"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "20950117",
+    "ok": true,
+    "quote_delta": "-20950117",
+    "base_delta": "34140478140",
+    "sqrt_price": "445450885788015254",
+    "quote_reserve": "38805823699"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "100287238",
+    "ok": true,
+    "quote_delta": "-100287238",
+    "base_delta": "163168481033",
+    "sqrt_price": "446038783775740349",
+    "quote_reserve": "38901096575"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "198291953",
+    "ok": true,
+    "quote_delta": "-198291953",
+    "base_delta": "321360546435",
+    "sqrt_price": "447201199277267519",
+    "quote_reserve": "39089473930"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "78995144",
+    "ok": true,
+    "quote_delta": "-78995144",
+    "base_delta": "127558099095",
+    "sqrt_price": "447664279991000282",
+    "quote_reserve": "39164519316"
+   },
+   {
+    "kind": "buy",
+    "trader": 1,
+    "amount": "5322525",
+    "ok": true,
+    "quote_delta": "-5322525",
+    "base_delta": "8585103637",
+    "sqrt_price": "447695481381512910",
+    "quote_reserve": "39169575714"
+   },
+   {
+    "kind": "sell",
+    "trader": 2,
+    "amount": "233700765374751",
+    "ok": true,
+    "quote_delta": "37181046416",
+    "base_delta": "-233700765374751",
+    "sqrt_price": "126371273178447187",
+    "quote_reserve": "31632118"
+   },
+   {
+    "kind": "sell",
+    "trader": 3,
+    "amount": "184126283831",
+    "ok": true,
+    "quote_delta": "8203306",
+    "base_delta": "-184126283831",
+    "sqrt_price": "126281760012017988",
+    "quote_reserve": "22997059"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "595384766",
+    "ok": true,
+    "quote_delta": "-595384766",
+    "base_delta": "11533713891879",
+    "sqrt_price": "132145070775179078",
+    "quote_reserve": "588612586"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "24315790",
+    "ok": true,
+    "quote_delta": "-24315790",
+    "base_delta": "449327723607",
+    "sqrt_price": "132384531101431792",
+    "quote_reserve": "611712586"
+   },
+   {
+    "kind": "buy",
+    "trader": 1,
+    "amount": "368626964",
+    "ok": true,
+    "quote_delta": "-368626964",
+    "base_delta": "6618002295428",
+    "sqrt_price": "136014745656417509",
+    "quote_reserve": "961908201"
+   },
+   {
+    "kind": "sell",
+    "trader": 3,
+    "amount": "204055902417",
+    "ok": true,
+    "quote_delta": "10530239",
+    "base_delta": "-204055902417",
+    "sqrt_price": "135899841364717452",
+    "quote_reserve": "950823738"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "13331119",
+    "ok": true,
+    "quote_delta": "-13331119",
+    "base_delta": "233116177412",
+    "sqrt_price": "136031125364190528",
+    "quote_reserve": "963488301"
+   },
+   {
+    "kind": "sell",
+    "trader": 3,
+    "amount": "478387998602",
+    "ok": true,
+    "quote_delta": "24664987",
+    "base_delta": "-478387998602",
+    "sqrt_price": "135761984965783080",
+    "quote_reserve": "937525156"
+   },
+   {
+    "kind": "buy",
+    "trader": 2,
+    "amount": "14835408",
+    "ok": true,
+    "quote_delta": "-14835408",
+    "base_delta": "259919618125",
+    "sqrt_price": "135908083100592921",
+    "quote_reserve": "951618793"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "511451915",
+    "ok": true,
+    "quote_delta": "-511451915",
+    "base_delta": "8631244642052",
+    "sqrt_price": "140944828565839105",
+    "quote_reserve": "1437498112"
+   },
+   {
+    "kind": "sell",
+    "trader": 0,
+    "amount": "20292516633026",
+    "ok": true,
+    "quote_delta": "1035230176",
+    "base_delta": "-20292516633026",
+    "sqrt_price": "129648562639066577",
+    "quote_reserve": "347782137"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "11725428153",
+    "ok": true,
+    "quote_delta": "-11725428153",
+    "base_delta": "130538471406982",
+    "sqrt_price": "228802951236832408",
+    "quote_reserve": "11486938882"
+   },
+   {
+    "kind": "buy",
+    "trader": 1,
+    "amount": "2377026806",
+    "ok": true,
+    "quote_delta": "-2377026806",
+    "base_delta": "13601209836803",
+    "sqrt_price": "246569784265139009",
+    "quote_reserve": "13745114347"
+   },
+   {
+    "kind": "sell",
+    "trader": 2,
+    "amount": "247607599920",
+    "ok": true,
+    "quote_delta": "41968946",
+    "base_delta": "-247607599920",
+    "sqrt_price": "246229496867767166",
+    "quote_reserve": "13700936509"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "20833092440",
+    "ok": true,
+    "quote_delta": "-20833092440",
+    "base_delta": "72659139186200",
+    "sqrt_price": "398760354224020708",
+    "quote_reserve": "33492374327"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "3464069",
+    "ok": true,
+    "quote_delta": "-3464069",
+    "base_delta": "7041687948",
+    "sqrt_price": "398805154769479928",
+    "quote_reserve": "33495665192"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "12101100935",
+    "ok": true,
+    "quote_delta": "-12101100935",
+    "base_delta": "19726524033465",
+    "sqrt_price": "483621988523540727",
+    "quote_reserve": "44991711080"
+   },
+   {
+    "kind": "buy",
+    "trader": 1,
+    "amount": "249617808",
+    "ok": true,
+    "quote_delta": "-249617808",
+    "base_delta": "343965176893",
+    "sqrt_price": "485085283452515400",
+    "quote_reserve": "45228847997"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "6045172",
+    "ok": true,
+    "quote_delta": "-6045172",
+    "base_delta": "8304313915",
+    "sqrt_price": "485120721104217866",
+    "quote_reserve": "45234590910"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "4168950",
+    "ok": true,
+    "quote_delta": "-4168950",
+    "base_delta": "5726221636",
+    "sqrt_price": "485145160076294044",
+    "quote_reserve": "45238551412"
+   },
+   {
+    "kind": "sell",
+    "trader": 4,
+    "amount": "73029986212638",
+    "ok": true,
+    "quote_delta": "26218728813",
+    "base_delta": "-73029986212638",
+    "sqrt_price": "274191253936953353",
+    "quote_reserve": "17639889503"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "33444687",
+    "ok": true,
+    "quote_delta": "-33444687",
+    "base_delta": "143720569702",
+    "sqrt_price": "274358013391495953",
+    "quote_reserve": "17671661955"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "314961071",
+    "ok": true,
+    "quote_delta": "-314961071",
+    "base_delta": "1344948944555",
+    "sqrt_price": "275928449299526150",
+    "quote_reserve": "17970874972"
+   }
+  ]
+ },
+ {
+  "seed": 1,
+  "onchain": {
+   "sqrt_start_price": "111150187281819952",
+   "migration_sqrt_price": "1015355582545819013",
+   "migration_quote_threshold": "33573310717",
+   "cliff_fee_numerator": "2500000",
+   "curve": [
+    {
+     "sqrt_price": "175565083513346688",
+     "liquidity": "13496915858872804528757663596544"
+    },
+    {
+     "sqrt_price": "277310360898419360",
+     "liquidity": "12474565698107449503662825537536"
+    },
+    {
+     "sqrt_price": "438020104696760384",
+     "liquidity": "16971753965686086785649866702848"
+    },
+    {
+     "sqrt_price": "691866007086699264",
+     "liquidity": "20023190417873153880943841247232"
+    },
+    {
+     "sqrt_price": "1092823289683197696",
+     "liquidity": "4561024817382215565887064244224"
+    }
+   ]
+  },
+  "ops": [
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "7515415826",
+    "ok": true,
+    "quote_delta": "-7515415826",
+    "base_delta": "75552231000432",
+    "sqrt_price": "301605993257286867",
+    "quote_reserve": "7496627286"
+   },
+   {
+    "kind": "buy",
+    "trader": 1,
+    "amount": "6138530",
+    "ok": true,
+    "quote_delta": "-6138530",
+    "base_delta": "22896020496",
+    "sqrt_price": "301728762607381309",
+    "quote_reserve": "7502750469"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "19632718951",
+    "ok": true,
+    "quote_delta": "-19632718951",
+    "base_delta": "32659575922193",
+    "sqrt_price": "655311314877741663",
+    "quote_reserve": "27086387622"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "1726468",
+    "ok": true,
+    "quote_delta": "-1726468",
+    "base_delta": "1364570392",
+    "sqrt_price": "655340581823030869",
+    "quote_reserve": "27088109773"
+   },
+   {
+    "kind": "sell",
+    "trader": 1,
+    "amount": "18201759607",
+    "ok": true,
+    "quote_delta": "22901413",
+    "base_delta": "-18201759607",
+    "sqrt_price": "654950410292055048",
+    "quote_reserve": "27065150962"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "53310209",
+    "ok": true,
+    "quote_delta": "-53310209",
+    "base_delta": "42125693182",
+    "sqrt_price": "655854121051889005",
+    "quote_reserve": "27118327895"
+   },
+   {
+    "kind": "buy",
+    "trader": 2,
+    "amount": "1081797",
+    "ok": true,
+    "quote_delta": "-1081797",
+    "base_delta": "853633147",
+    "sqrt_price": "655872459586968693",
+    "quote_reserve": "27119406987"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "26014536",
+    "ok": true,
+    "quote_delta": "-26014536",
+    "base_delta": "20513403320",
+    "sqrt_price": "656313456089316816",
+    "quote_reserve": "27145356486"
+   },
+   {
+    "kind": "sell",
+    "trader": 1,
+    "amount": "4694260889",
+    "ok": true,
+    "quote_delta": "5926474",
+    "base_delta": "-4694260889",
+    "sqrt_price": "656212486696772596",
+    "quote_reserve": "27139415158"
+   },
+   {
+    "kind": "sell",
+    "trader": 0,
+    "amount": "38071217404778",
+    "ok": true,
+    "quote_delta": "20895495308",
+    "base_delta": "-38071217404778",
+    "sqrt_price": "274764762812808624",
+    "quote_reserve": "6191550187"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "953270431",
+    "ok": true,
+    "quote_delta": "-953270431",
+    "base_delta": "3989897336450",
+    "sqrt_price": "294504513916921143",
+    "quote_reserve": "7142437441"
+   },
+   {
+    "kind": "buy",
+    "trader": 2,
+    "amount": "8789088460",
+    "ok": true,
+    "quote_delta": "-8789088460",
+    "base_delta": "21567979809871",
+    "sqrt_price": "465367574597783848",
+    "quote_reserve": "15909553179"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "362772203",
+    "ok": true,
+    "quote_delta": "-362772203",
+    "base_delta": "561167659455",
+    "sqrt_price": "471517262469339765",
+    "quote_reserve": "16271418451"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "3260158",
+    "ok": true,
+    "quote_delta": "-3260158",
+    "base_delta": "4976738509",
+    "sqrt_price": "471572528419276278",
+    "quote_reserve": "16274670458"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "10143810",
+    "ok": true,
+    "quote_delta": "-10143810",
+    "base_delta": "15477403523",
+    "sqrt_price": "471744485537183809",
+    "quote_reserve": "16284788908"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "56624915",
+    "ok": true,
+    "quote_delta": "-56624915",
+    "base_delta": "86191302159",
+    "sqrt_price": "472704386946952756",
+    "quote_reserve": "16341272260"
+   },
+   {
+    "kind": "sell",
+    "trader": 2,
+    "amount": "21568833443018",
+    "ok": true,
+    "quote_delta": "9004279153",
+    "base_delta": "-21568833443018",
+    "sqrt_price": "297952871122207709",
+    "quote_reserve": "7314425991"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "7571613950",
+    "ok": true,
+    "quote_delta": "-7571613950",
+    "base_delta": "19198254503890",
+    "sqrt_price": "447651880079950541",
+    "quote_reserve": "14867110906"
+   },
+   {
+    "kind": "buy",
+    "trader": 1,
+    "amount": "133248573",
+    "ok": true,
+    "quote_delta": "-133248573",
+    "base_delta": "224568159359",
+    "sqrt_price": "449910700144223204",
+    "quote_reserve": "15000026357"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "5283603",
+    "ok": true,
+    "quote_delta": "-5283603",
+    "base_delta": "8858156560",
+    "sqrt_price": "450000267379374835",
+    "quote_reserve": "15005296750"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "1918305",
+    "ok": true,
+    "quote_delta": "-1918305",
+    "base_delta": "3215237272",
+    "sqrt_price": "450032786341540989",
+    "quote_reserve": "15007210259"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "1127556291",
+    "ok": true,
+    "quote_delta": "-1127556291",
+    "base_delta": "1812748055908",
+    "sqrt_price": "469147038198970780",
+    "quote_reserve": "16131947659"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "2887456",
+    "ok": true,
+    "quote_delta": "-2887456",
+    "base_delta": "4452504868",
+    "sqrt_price": "469195986135997758",
+    "quote_reserve": "16134827896"
+   },
+   {
+    "kind": "buy",
+    "trader": 2,
+    "amount": "5446433",
+    "ok": true,
+    "quote_delta": "-5446433",
+    "base_delta": "8395961025",
+    "sqrt_price": "469288313654687075",
+    "quote_reserve": "16140260712"
+   },
+   {
+    "kind": "sell",
+    "trader": 3,
+    "amount": "19446952383926",
+    "ok": true,
+    "quote_delta": "8316300197",
+    "base_delta": "-19446952383926",
+    "sqrt_price": "307751101561230649",
+    "quote_reserve": "7803117657"
+   },
+   {
+    "kind": "sell",
+    "trader": 2,
+    "amount": "8395961025",
+    "ok": true,
+    "quote_delta": "2330648",
+    "base_delta": "-8395961025",
+    "sqrt_price": "307704255098419439",
+    "quote_reserve": "7800781167"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "54300316",
+    "ok": true,
+    "quote_delta": "-54300316",
+    "base_delta": "193980298328",
+    "sqrt_price": "308790250477489143",
+    "quote_reserve": "7854945732"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "6868855",
+    "ok": true,
+    "quote_delta": "-6868855",
+    "base_delta": "24440850595",
+    "sqrt_price": "308927626176728213",
+    "quote_reserve": "7861797414"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "8778014966",
+    "ok": true,
+    "quote_delta": "-8778014966",
+    "base_delta": "19962336505658",
+    "sqrt_price": "477404957910720111",
+    "quote_reserve": "16617867342"
+   },
+   {
+    "kind": "sell",
+    "trader": 1,
+    "amount": "224568159359",
+    "ok": true,
+    "quote_delta": "149236945",
+    "base_delta": "-224568159359",
+    "sqrt_price": "474862407241164554",
+    "quote_reserve": "16468256369"
+   }
+  ]
+ },
+ {
+  "seed": 2,
+  "onchain": {
+   "sqrt_start_price": "109022813160301600",
+   "migration_sqrt_price": "787949353809226151",
+   "migration_quote_threshold": "111175472560",
+   "cliff_fee_numerator": "2500000",
+   "curve": [
+    {
+     "sqrt_price": "128784870530980208",
+     "liquidity": "109779347722069798084198220693504"
+    },
+    {
+     "sqrt_price": "152129103963725408",
+     "liquidity": "53107250598734353886255190638592"
+    },
+    {
+     "sqrt_price": "179704837822845664",
+     "liquidity": "116576798217884564545333637414912"
+    },
+    {
+     "sqrt_price": "212279096474765280",
+     "liquidity": "113883413472182611862403883728896"
+    },
+    {
+     "sqrt_price": "250757939219007360",
+     "liquidity": "59768665775677813431782101483520"
+    },
+    {
+     "sqrt_price": "296211662502709952",
+     "liquidity": "111235957171275826328110758887424"
+    },
+    {
+     "sqrt_price": "349904570423142912",
+     "liquidity": "30805192269095801578302761598976"
+    },
+    {
+     "sqrt_price": "413330141590505728",
+     "liquidity": "32252458793691747866670012563456"
+    },
+    {
+     "sqrt_price": "488252570524091392",
+     "liquidity": "38195125604170034232915518291968"
+    },
+    {
+     "sqrt_price": "576755839063779200",
+     "liquidity": "32172376937853423706628625006592"
+    },
+    {
+     "sqrt_price": "681301682727650048",
+     "liquidity": "31822383411651782568632270192640"
+    },
+    {
+     "sqrt_price": "804798064361162368",
+     "liquidity": "69443448853878077887370647044096"
+    }
+   ]
+  },
+  "ops": [
+   {
+    "kind": "buy",
+    "trader": 1,
+    "amount": "272979008",
+    "ok": true,
+    "quote_delta": "-272979008",
+    "base_delta": "7735663079147",
+    "sqrt_price": "109866849127574901",
+    "quote_reserve": "272296560"
+   },
+   {
+    "kind": "buy",
+    "trader": 2,
+    "amount": "497848014",
+    "ok": true,
+    "quote_delta": "-497848014",
+    "base_delta": "13806170209392",
+    "sqrt_price": "111406167601381395",
+    "quote_reserve": "768899953"
+   },
+   {
+    "kind": "sell",
+    "trader": 2,
+    "amount": "13806170209392",
+    "ok": true,
+    "quote_delta": "495361883",
+    "base_delta": "-13806170209392",
+    "sqrt_price": "109866849127574991",
+    "quote_reserve": "272296561"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "40412387417",
+    "ok": true,
+    "quote_delta": "-40412387417",
+    "base_delta": "486050210607622",
+    "sqrt_price": "261334555722945776",
+    "quote_reserve": "40583653009"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "414001295",
+    "ok": true,
+    "quote_delta": "-414001295",
+    "base_delta": "2047698546215",
+    "sqrt_price": "262597862575636108",
+    "quote_reserve": "40996619300"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "36344038476",
+    "ok": true,
+    "quote_delta": "-36344038476",
+    "base_delta": "99912627914808",
+    "sqrt_price": "551534546399411118",
+    "quote_reserve": "77249797679"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "15669047516",
+    "ok": true,
+    "quote_delta": "-15669047516",
+    "base_delta": "13498235654301",
+    "sqrt_price": "698297439534231249",
+    "quote_reserve": "92879672576"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "54543106",
+    "ok": true,
+    "quote_delta": "-54543106",
+    "base_delta": "37952949948",
+    "sqrt_price": "698564040016947296",
+    "quote_reserve": "92934079324"
+   },
+   {
+    "kind": "sell",
+    "trader": 1,
+    "amount": "140066497957",
+    "ok": true,
+    "quote_delta": "200082309",
+    "base_delta": "-140066497957",
+    "sqrt_price": "697581152199170217",
+    "quote_reserve": "92733495555"
+   },
+   {
+    "kind": "sell",
+    "trader": 0,
+    "amount": "13498235654301",
+    "ok": true,
+    "quote_delta": "15535884189",
+    "base_delta": "-13498235654301",
+    "sqrt_price": "550570748285349559",
+    "quote_reserve": "77158674312"
+   },
+   {
+    "kind": "buy",
+    "trader": 2,
+    "amount": "14051344",
+    "ok": true,
+    "quote_delta": "-14051344",
+    "base_delta": "15729937800",
+    "sqrt_price": "550718995672376194",
+    "quote_reserve": "77172690527"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "6395146",
+    "ok": true,
+    "quote_delta": "-6395146",
+    "base_delta": "7156315619",
+    "sqrt_price": "550786467062115154",
+    "quote_reserve": "77179069685"
+   },
+   {
+    "kind": "sell",
+    "trader": 3,
+    "amount": "180130114845146",
+    "ok": true,
+    "quote_delta": "48882331315",
+    "base_delta": "-180130114845146",
+    "sqrt_price": "205725201272812120",
+    "quote_reserve": "28174226261"
+   },
+   {
+    "kind": "sell",
+    "trader": 0,
+    "amount": "7156315619",
+    "ok": true,
+    "quote_delta": "887834",
+    "base_delta": "-7156315619",
+    "sqrt_price": "205722541782652329",
+    "quote_reserve": "28173336201"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "5959471074",
+    "ok": true,
+    "quote_delta": "-5959471074",
+    "base_delta": "42829556476854",
+    "sqrt_price": "233630590932025997",
+    "quote_reserve": "34117908597"
+   },
+   {
+    "kind": "sell",
+    "trader": 4,
+    "amount": "124116718890154",
+    "ok": true,
+    "quote_delta": "14723108418",
+    "base_delta": "-124116718890154",
+    "sqrt_price": "179389573494614470",
+    "quote_reserve": "19357900157"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "6875172395",
+    "ok": true,
+    "quote_delta": "-6875172395",
+    "base_delta": "65087985671802",
+    "sqrt_price": "199873698323872913",
+    "quote_reserve": "26215884621"
+   },
+   {
+    "kind": "sell",
+    "trader": 1,
+    "amount": "7595596581190",
+    "ok": true,
+    "quote_delta": "877799626",
+    "base_delta": "-7595596581190",
+    "sqrt_price": "197244269272731837",
+    "quote_reserve": "25335884995"
+   },
+   {
+    "kind": "buy",
+    "trader": 1,
+    "amount": "118845253",
+    "ok": true,
+    "quote_delta": "-118845253",
+    "base_delta": "1035013872037",
+    "sqrt_price": "197598489787406222",
+    "quote_reserve": "25454433134"
+   },
+   {
+    "kind": "sell",
+    "trader": 1,
+    "amount": "243136380225",
+    "ok": true,
+    "quote_delta": "27816818",
+    "base_delta": "-243136380225",
+    "sqrt_price": "197515165129759406",
+    "quote_reserve": "25426546599"
+   },
+   {
+    "kind": "sell",
+    "trader": 3,
+    "amount": "40654254480033",
+    "ok": true,
+    "quote_delta": "4343001075",
+    "base_delta": "-40654254480033",
+    "sqrt_price": "184505803038099879",
+    "quote_reserve": "21072660809"
+   },
+   {
+    "kind": "sell",
+    "trader": 3,
+    "amount": "267313539828658",
+    "ok": true,
+    "quote_delta": "17803643180",
+    "base_delta": "-267313539828658",
+    "sqrt_price": "119017456492982475",
+    "quote_reserve": "3224396969"
+   },
+   {
+    "kind": "buy",
+    "trader": 3,
+    "amount": "2432775308",
+    "ok": true,
+    "quote_delta": "-2432775308",
+    "base_delta": "54829930662185",
+    "sqrt_price": "126539462958945992",
+    "quote_reserve": "5651090338"
+   },
+   {
+    "kind": "buy",
+    "trader": 1,
+    "amount": "719249919",
+    "ok": true,
+    "quote_delta": "-719249919",
+    "base_delta": "14983522955922",
+    "sqrt_price": "128763343858949854",
+    "quote_reserve": "6368542132"
+   },
+   {
+    "kind": "sell",
+    "trader": 4,
+    "amount": "7899761985622",
+    "ok": true,
+    "quote_delta": "380422658",
+    "base_delta": "-7899761985622",
+    "sqrt_price": "127581194716312947",
+    "quote_reserve": "5987166033"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "45467623",
+    "ok": true,
+    "quote_delta": "-45467623",
+    "base_delta": "947115556410",
+    "sqrt_price": "127721778084644970",
+    "quote_reserve": "6032519986"
+   },
+   {
+    "kind": "buy",
+    "trader": 4,
+    "amount": "1756694338",
+    "ok": true,
+    "quote_delta": "-1756694338",
+    "base_delta": "34115578705385",
+    "sqrt_price": "137815126774903364",
+    "quote_reserve": "7784822588"
+   },
+   {
+    "kind": "buy",
+    "trader": 2,
+    "amount": "6300355",
+    "ok": true,
+    "quote_delta": "-6300355",
+    "base_delta": "112563271361",
+    "sqrt_price": "137855395097969814",
+    "quote_reserve": "7791107192"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "2477174567",
+    "ok": true,
+    "quote_delta": "-2477174567",
+    "base_delta": "39706362239802",
+    "sqrt_price": "152839314272228993",
+    "quote_reserve": "10262088822"
+   },
+   {
+    "kind": "buy",
+    "trader": 0,
+    "amount": "12988208820",
+    "ok": true,
+    "quote_delta": "-12988208820",
+    "base_delta": "151241060641298",
+    "sqrt_price": "190915535990281436",
+    "quote_reserve": "23217827119"
+   }
+  ]
+ }
+]

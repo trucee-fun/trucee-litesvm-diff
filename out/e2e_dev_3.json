@@ -1,0 +1,989 @@
+{
+ "seed": 503,
+ "onchain_config": {
+  "seed": 503,
+  "sqrt_start_price": "118950083767826976",
+  "fee_numerator": 2500000,
+  "migration_quote_threshold": "121329240510",
+  "curve": [
+   {
+    "sqrt_price": "194704079153430528",
+    "liquidity": "71140817263323033730159067791360"
+   },
+   {
+    "sqrt_price": "318702410609306048",
+    "liquidity": "70274647938349127783331720593408"
+   },
+   {
+    "sqrt_price": "521669740920746944",
+    "liquidity": "88819305129624235285480074117120"
+   },
+   {
+    "sqrt_price": "853897898268275328",
+    "liquidity": "31401722741739053186337392820224"
+   }
+  ]
+ },
+ "ops": [
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "4941790509",
+   "ok": true,
+   "tokens_out": "92042725651608",
+   "basis_after": "4929436016"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "1866749113",
+   "ok": true,
+   "tokens_out": "27538235016388",
+   "basis_after": "1862082224"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "4885591865",
+   "ok": true,
+   "tokens_out": "59137637093427",
+   "basis_after": "4873377869"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "652550790",
+   "ok": true,
+   "tokens_out": "6755960599906",
+   "basis_after": "650919397"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "54516999",
+   "ok": true,
+   "tokens_out": "554011667938",
+   "basis_after": "705300087"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "5058657951467",
+   "ok": true,
+   "refund": "415828580",
+   "basis_after": "4456507110"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "50649143",
+   "ok": true,
+   "tokens_out": "526724065709",
+   "basis_after": "1912604728"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "12786924962",
+   "ok": true,
+   "tokens_out": "99120935492801",
+   "basis_after": "13460257720"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "20759441",
+   "ok": true,
+   "tokens_out": "119898537390",
+   "basis_after": "13480965246"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "28064959082097",
+   "ok": true,
+   "refund": "1907823214",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "54078979141960",
+   "ok": true,
+   "refund": "4445365840",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "281428458",
+   "ok": true,
+   "tokens_out": "2655471222631",
+   "basis_after": "280724870"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "18253023487",
+   "ok": true,
+   "tokens_out": "116931119672759",
+   "basis_after": "18207390912"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "8733547786509",
+   "ok": true,
+   "refund": "376767598",
+   "basis_after": "619788104"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "50044078950699",
+   "ok": true,
+   "refund": "6315821588",
+   "basis_after": "7149314529"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "64954696",
+   "ok": true,
+   "tokens_out": "431640914130",
+   "basis_after": "18272183205"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "155916986",
+   "ok": true,
+   "tokens_out": "1031237904897",
+   "basis_after": "436252047"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "82790282284550",
+   "ok": true,
+   "refund": "4422827797",
+   "basis_after": "495523435"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "3676039129255",
+   "ok": true,
+   "refund": "463935148",
+   "basis_after": "6684216634"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "44236449",
+   "ok": true,
+   "tokens_out": "475577421692",
+   "basis_after": "18316309046"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "3731550551245",
+   "ok": true,
+   "refund": "199347132",
+   "basis_after": "295676684"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "2219483358",
+   "ok": true,
+   "tokens_out": "22902641902765",
+   "basis_after": "8898151267"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "10376662841",
+   "ok": true,
+   "tokens_out": "79697804359749",
+   "basis_after": "10646397851"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "304663190",
+   "ok": true,
+   "tokens_out": "1833409197345",
+   "basis_after": "9202052783"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "13396400767098",
+   "ok": true,
+   "refund": "577924331",
+   "basis_after": "40415339"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "13163861396168",
+   "ok": true,
+   "refund": "1640453806",
+   "basis_after": "9001832629"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "4361828719",
+   "ok": true,
+   "tokens_out": "28270547692760",
+   "basis_after": "4787176178"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "77566739318191",
+   "ok": true,
+   "refund": "9179047649",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "226535975",
+   "ok": true,
+   "tokens_out": "2127706855273",
+   "basis_after": "18542278665"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "2171186954",
+   "ok": true,
+   "tokens_out": "19227493784497",
+   "basis_after": "20708037635"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "92129010",
+   "ok": true,
+   "tokens_out": "771695909069",
+   "basis_after": "20799936306"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "63539887",
+   "ok": true,
+   "tokens_out": "530243466475",
+   "basis_after": "9065213650"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "139965234557420",
+   "ok": true,
+   "refund": "20747936463",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "5784686407",
+   "ok": true,
+   "tokens_out": "79035845850657",
+   "basis_after": "14835438324"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "45058335",
+   "ok": true,
+   "tokens_out": "516208093211",
+   "basis_after": "44945673"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "29891786",
+   "ok": true,
+   "tokens_out": "341742999198",
+   "basis_after": "29817040"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "9528615671",
+   "ok": true,
+   "tokens_out": "86080218996859",
+   "basis_after": "24340232439"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "934493478361",
+   "ok": true,
+   "refund": "40314298",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "21506682330063",
+   "ok": true,
+   "refund": "2196745640",
+   "basis_after": "22137981168"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "10037189",
+   "ok": true,
+   "tokens_out": "81908896382",
+   "basis_after": "22147993248"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "23231136",
+   "ok": true,
+   "tokens_out": "189429378274",
+   "basis_after": "52990082"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "200901775675",
+   "ok": true,
+   "refund": "17448564",
+   "basis_after": "27453376"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "50446856",
+   "ok": true,
+   "tokens_out": "411112086055",
+   "basis_after": "4837496900"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "152582723",
+   "ok": true,
+   "tokens_out": "1237509236063",
+   "basis_after": "152201250"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "183482123275",
+   "ok": true,
+   "refund": "18258526",
+   "basis_after": "34685793"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "275314932984",
+   "ok": true,
+   "refund": "23911438",
+   "basis_after": "3482007"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "1055951613",
+   "ok": true,
+   "tokens_out": "8348225149710",
+   "basis_after": "1056793724"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "447154131973",
+   "ok": true,
+   "refund": "56194100",
+   "basis_after": "1000458784"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "1237509236063",
+   "ok": true,
+   "refund": "151820744",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "32368368906343",
+   "ok": true,
+   "refund": "4825403155",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "384951522",
+   "ok": true,
+   "tokens_out": "3567401471113",
+   "basis_after": "383989127"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "3004091215638",
+   "ok": true,
+   "refund": "377525777",
+   "basis_after": "621986825"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "16559836",
+   "ok": true,
+   "tokens_out": "154411297320",
+   "basis_after": "400507547"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "21766047",
+   "ok": true,
+   "tokens_out": "202761954031",
+   "basis_after": "21711615"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "24724233429720",
+   "ok": true,
+   "refund": "2525579527",
+   "basis_after": "19616083945"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "126815183",
+   "ok": true,
+   "tokens_out": "1338082984584",
+   "basis_after": "19742582074"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "2335095208321",
+   "ok": true,
+   "refund": "250653443",
+   "basis_after": "149225897"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "151823692",
+   "ok": true,
+   "tokens_out": "1608923933856",
+   "basis_after": "19894026190"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "194499144148424",
+   "ok": true,
+   "refund": "19844291122",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "362083636",
+   "ok": true,
+   "tokens_out": "8367578286709",
+   "basis_after": "510404307"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "8407025643",
+   "ok": true,
+   "tokens_out": "144158517640838",
+   "basis_after": "9007994887"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "202761954031",
+   "ok": true,
+   "refund": "21657333",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "149095488827489",
+   "ok": true,
+   "refund": "8985474897",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "294223737521",
+   "ok": true,
+   "refund": "29278558",
+   "basis_after": "5333853"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "49622958",
+   "ok": true,
+   "tokens_out": "1149460437238",
+   "basis_after": "54832737"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "9208759567",
+   "ok": true,
+   "tokens_out": "156239774547344",
+   "basis_after": "9185737652"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "15237861484339",
+   "ok": true,
+   "refund": "893633330",
+   "basis_after": "8289864637"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "1202926953914",
+   "ok": true,
+   "refund": "54695653",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "271636427",
+   "ok": true,
+   "tokens_out": "3615829655020",
+   "basis_after": "270957319"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "54640942",
+   "ok": true,
+   "tokens_out": "720290524736",
+   "basis_after": "564908630"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "10474586371557",
+   "ok": true,
+   "refund": "563496356",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "14319373",
+   "ok": true,
+   "tokens_out": "197386828327",
+   "basis_after": "14283558"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "187691667925",
+   "ok": true,
+   "refund": "13548027",
+   "basis_after": "701574"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "108846313",
+   "ok": true,
+   "tokens_out": "1496039971475",
+   "basis_after": "8398438818"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "7710501260",
+   "ok": true,
+   "tokens_out": "85617378874243",
+   "basis_after": "7691926564"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "3615829655020",
+   "ok": true,
+   "refund": "270279923",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "253708495",
+   "ok": true,
+   "tokens_out": "2314223832373",
+   "basis_after": "253074207"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "216859133",
+   "ok": true,
+   "tokens_out": "1955270367196",
+   "basis_after": "216316969"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "2547109795",
+   "ok": true,
+   "tokens_out": "21485157165813",
+   "basis_after": "2757058973"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "52120380",
+   "ok": true,
+   "tokens_out": "412989769623",
+   "basis_after": "51990063"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "412989769623",
+   "ok": true,
+   "refund": "51860085",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "782133070",
+   "ok": true,
+   "tokens_out": "6093690097107",
+   "basis_after": "9178616539"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "10634007350",
+   "ok": true,
+   "tokens_out": "65413021456791",
+   "basis_after": "19786038854"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "23440427533009",
+   "ok": true,
+   "refund": "2750166323",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "13609692397",
+   "ok": true,
+   "tokens_out": "62522702818127",
+   "basis_after": "13828742357"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "19044345872228",
+   "ok": true,
+   "refund": "1756364222",
+   "basis_after": "18025272714"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "39475220939816",
+   "ok": true,
+   "refund": "8398422877",
+   "basis_after": "5409270799"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "5556340923",
+   "ok": true,
+   "tokens_out": "28476042548290",
+   "basis_after": "5542450054"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "10158195480",
+   "ok": true,
+   "tokens_out": "39720131068413",
+   "basis_after": "28158072689"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "61445060782519",
+   "ok": true,
+   "refund": "7354038449",
+   "basis_after": "20785603063"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "58714796172247",
+   "ok": true,
+   "refund": "7027267336",
+   "basis_after": "13740723526"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "29116529",
+   "ok": true,
+   "tokens_out": "230692833117",
+   "basis_after": "13769767247"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "10302759",
+   "ok": true,
+   "tokens_out": "81554625028",
+   "basis_after": "10276986"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "11456525977",
+   "ok": true,
+   "tokens_out": "71548530914074",
+   "basis_after": "19119811210"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "28476042548290",
+   "ok": true,
+   "refund": "5528593926",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "81554625028",
+   "ok": true,
+   "refund": "10251291",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "833781886",
+   "ok": true,
+   "tokens_out": "4948366556038",
+   "basis_after": "831697415"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "7861992836",
+   "ok": true,
+   "tokens_out": "39639155407803",
+   "basis_after": "21612105084"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "69773732",
+   "ok": true,
+   "tokens_out": "303567546898",
+   "basis_after": "69599281"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "895392558",
+   "ok": true,
+   "tokens_out": "3831633276632",
+   "basis_after": "1724851475"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "1197775098",
+   "ok": true,
+   "tokens_out": "4946669353843",
+   "basis_after": "20314591854"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "303567546898",
+   "ok": true,
+   "refund": "69425280",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "15009708770",
+   "ok": true,
+   "tokens_out": "49364037545457",
+   "basis_after": "35286776336"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "1377362688",
+   "ok": true,
+   "tokens_out": "3702057329105",
+   "basis_after": "1373919265"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "134201868",
+   "ok": true,
+   "tokens_out": "354894248488",
+   "basis_after": "21745971431"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "9088126467",
+   "ok": true,
+   "tokens_out": "21879466900707",
+   "basis_after": "44352182470"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "43266251",
+   "ok": true,
+   "tokens_out": "94923282235",
+   "basis_after": "1768009544"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "342233325",
+   "ok": true,
+   "tokens_out": "748034879997",
+   "basis_after": "22087349156"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "25361705710684",
+   "ok": true,
+   "refund": "5395747620",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "238155710",
+   "ok": true,
+   "tokens_out": "640724775478",
+   "basis_after": "1611479569"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "116842084",
+   "ok": true,
+   "tokens_out": "313149765879",
+   "basis_after": "116549962"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "313149765879",
+   "ok": true,
+   "refund": "116258585",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "4026658523",
+   "ok": true,
+   "tokens_out": "10357306068059",
+   "basis_after": "48368774330"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "175629695",
+   "ok": true,
+   "tokens_out": "432234425312",
+   "basis_after": "22262539760"
+  },
+  {
+   "kind": "sell",
+   "trader": 1,
+   "amount": "243723084816785",
+   "ok": true,
+   "refund": "48247852392",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "38776892",
+   "ok": true,
+   "tokens_out": "477942212543",
+   "basis_after": "38679933"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "155773370701808",
+   "ok": true,
+   "refund": "22185202293",
+   "basis_after": "21735454"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "477942212543",
+   "ok": true,
+   "refund": "38583231",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "4342782104583",
+   "ok": true,
+   "refund": "1607450868",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 0,
+   "amount": "17136149",
+   "ok": true,
+   "tokens_out": "398503319460",
+   "basis_after": "38828746"
+  }
+ ]
+}
