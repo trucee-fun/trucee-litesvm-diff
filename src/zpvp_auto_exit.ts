@@ -5,6 +5,9 @@
  * - ONC-12: once the deadline has passed and while the curve is live, anyone may `auto_exit` the whole position at
  *   cost: the market PDA sells the owner's tokens as their token delegate and the refund lands in the owner's
  *   canonical quote ATA. The clock is warped with `Chain.setClock`.
+ * - ONC-19: a sell that empties a position clears its deadline (a re-bought position cannot be auto-exited on the old
+ *   one); non-ATA owner accounts, another market's buffer or pool, and a victim delegated to market A cranked through
+ *   market B's accounts are all rejected.
  * Every rejection asserts its exact error code; auto_exit rejections also assert that no account changed.
  * The curve is graduated by small buys spread over TRADERS wallets (the least-held trader buys next), so no
  * position exceeds the Anti-Whale cap (20% of the config's swap_base_amount, ONC-04) at any point.
@@ -14,12 +17,15 @@
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { Keypair, PublicKey, SYSVAR_CLOCK_PUBKEY, SystemProgram, TransactionInstruction } from '@solana/web3.js'
-import { TOKEN_2022_PROGRAM_ID, createApproveCheckedInstruction, createRevokeInstruction } from '@solana/spl-token'
+import {
+  TOKEN_2022_PROGRAM_ID, createApproveCheckedInstruction, createAssociatedTokenAccountIdempotentInstruction,
+  createInitializeAccount3Instruction, createRevokeInstruction, getAccountLenForMint, getAssociatedTokenAddressSync, unpackMint,
+} from '@solana/spl-token'
 import { DYNAMIC_BONDING_CURVE_PROGRAM_ID } from '@meteora-ag/dynamic-bonding-curve-sdk'
 import { Chain, TxResult, liteSvmChain } from './chain'
 import {
   BASE_DECIMALS, MARKET_BASIS_SNAPSHOT_OFFSET, MARKET_SURPLUS_SNAPSHOT_OFFSET, MARKET_TOTAL_BASIS_OFFSET, MarketFixture,
-  ROUTER_ID, Scenario, check, createMarketFixture, disc, eventAuthority, meta, must, poolAuthority,
+  ROUTER_ID, Scenario, check, createMarketFixture, disc, eventAuthority, meta, must, pda, poolAuthority,
 } from './fixture'
 import { zpvpPrograms } from './zpvp_e2e'
 
@@ -56,14 +62,19 @@ const SELL_PROCEEDS = 88
 const SELL_REFUND = 96
 const AUTO_EXIT_CRANKER = 72 // AutoExitEvent: cranker (pubkey)
 const AUTO_EXIT_SET_DEADLINE = 72 // AutoExitSetEvent: deadline (i64)
+const TOKEN_DELEGATE_OFFSET = 72 // SPL token account: delegate COption<Pubkey> (u32 tag, then the key)
 // auto_exit test roles (trader indexes): EXITER is exited by CRANKER; IDLE keeps auto-exit disabled
 const EXITER = 2
 const IDLE = 3
 const LATE_BUYER = 4
+const VICTIM = 5 // ONC-19 cross-market victim (holds no position before autoExitSuite)
 const CRANKER = 6
+const FULL_SELLER = 7 // ONC-19: sells the whole position after setting a deadline, then buys again
 
 const ERR = {
+  constraintHasOne: 2001,
   constraintSeeds: 2006,
+  constraintAssociated: 2009,
   constraintTokenOwner: 2015,
   accountNotSigner: 3010,
   accountNotInitialized: 3012,
@@ -92,6 +103,8 @@ function setAutoExitIx({ owner, market, position, ownerSigns = true }: SetAutoEx
 
 type AutoExitAccounts = {
   cranker: PublicKey; owner: PublicKey; position: PublicKey; ownerQuote: PublicKey; ownerBase: PublicKey
+  /** Market m's own unless overridden (to smuggle in another market's) */
+  buffer?: PublicKey; pool?: PublicKey
 }
 
 /**
@@ -103,8 +116,8 @@ function autoExitIx(m: MarketFixture, a: AutoExitAccounts) {
     programId: ROUTER_ID, data: disc('auto_exit'),
     keys: [
       meta(a.cranker, false, true), meta(a.owner), meta(m.market, true), meta(a.position, true),
-      meta(a.ownerQuote, true), meta(a.ownerBase, true), meta(m.buffer, true),
-      meta(poolAuthority), meta(m.config.publicKey), meta(m.pool, true), meta(m.baseVault, true), meta(m.quoteVault, true),
+      meta(a.ownerQuote, true), meta(a.ownerBase, true), meta(a.buffer ?? m.buffer, true),
+      meta(poolAuthority), meta(m.config.publicKey), meta(a.pool ?? m.pool, true), meta(m.baseVault, true), meta(m.quoteVault, true),
       meta(m.baseMint.publicKey, true), meta(m.quoteMintPk), meta(TOKEN_2022_PROGRAM_ID), meta(m.quoteTokenProgram),
       meta(eventAuthority), meta(DYNAMIC_BONDING_CURVE_PROGRAM_ID), meta(SystemProgram.programId), ...m.hookAccounts,
     ],
@@ -124,6 +137,15 @@ const exitWatched = (m: MarketFixture, owner: number) =>
 const approveMarketIx = (m: MarketFixture, i: number, amount: bigint) => createApproveCheckedInstruction(
   m.ata[i].base, m.baseMint.publicKey, m.market, m.traders[i].publicKey, amount, BASE_DECIMALS, [], TOKEN_2022_PROGRAM_ID)
 const revokeIx = (m: MarketFixture, i: number) => createRevokeInstruction(m.ata[i].base, m.traders[i].publicKey, [], TOKEN_2022_PROGRAM_ID)
+const positionPda = (market: PublicKey, owner: PublicKey) => pda([Buffer.from('position'), market.toBuffer(), owner.toBuffer()], ROUTER_ID)
+
+type BuyAccounts = { position: PublicKey; userQuote: PublicKey; userBase: PublicKey }
+
+/** Router buy on market `m` by `wallet`, which is not one of m's fixture traders: m's buy with the user key swapped in. */
+function foreignBuyIx(m: MarketFixture, wallet: PublicKey, accounts: BuyAccounts, amount: bigint) {
+  const [ix] = m.buyIxs(0, amount, accounts, 0n)
+  return new TransactionInstruction({ programId: ix.programId, data: ix.data, keys: [meta(wallet, true, true), ...ix.keys.slice(1)] })
+}
 
 /** refund_for(basis, fee) = basis - ceil(basis * fee / 1e9) - 2, floored at zero (math.rs). */
 function refundFor(basis: bigint, fee: bigint): bigint {
@@ -177,6 +199,26 @@ async function rejectedUnchanged(
   const unchanged = (await stateOf(chain, watched)).every((d, i) => d === before[i])
   const matches = !r.ok && new RegExp(`code: ${code}\\b`).test(r.error) && (!source || source.test(r.error))
   check(matches && unchanged, `${label} (${code}), no balance change`, `${unchanged ? '' : 'STATE CHANGED '}${errorDetail(r)}`)
+}
+
+/** True if token account `account` names `delegate` as its delegate. */
+async function isDelegatedTo(chain: Chain, account: PublicKey, delegate: PublicKey): Promise<boolean> {
+  const d = await accountBytes(chain, account, 'token account')
+  return d.readUInt32LE(TOKEN_DELEGATE_OFFSET) === 1 && keyAt(d, TOKEN_DELEGATE_OFFSET + 4).equals(delegate)
+}
+
+/** A token account of `owner` at a fresh address (not the canonical ATA). Anyone can create one: here `payer` does. */
+async function nonAtaAccount(chain: Chain, payer: Keypair, mint: PublicKey, owner: PublicKey, tokenProgram: PublicKey): Promise<PublicKey> {
+  const account = Keypair.generate()
+  const mintData = await accountBytes(chain, mint, 'mint')
+  const space = getAccountLenForMint(unpackMint(mint, { data: mintData, owner: tokenProgram, lamports: 0, executable: false }, tokenProgram))
+  must(await chain.send(payer, [
+    SystemProgram.createAccount({
+      fromPubkey: payer.publicKey, newAccountPubkey: account.publicKey, lamports: await chain.rentExempt(space), space, programId: tokenProgram,
+    }),
+    createInitializeAccount3Instruction(account.publicKey, mint, owner, tokenProgram),
+  ], [account]), `non-ATA token account for mint ${mint.toBase58()}`)
+  return account.publicKey
 }
 
 async function clockUnixTimestamp(chain: Chain): Promise<bigint> {
@@ -304,6 +346,7 @@ async function autoExitSuite(ctx: Ctx): Promise<void> {
     "owner account != position.owner rejected (another holder's key)")
   await rejectedUnchanged(chain, watched, crankExit({ ...exitOf(A, CRANKER, crank.publicKey), position: posE }), ERR.constraintSeeds,
     "owner + both ATAs swapped to the cranker's rejected")
+  await smuggledAccountsRejected(ctx, watched)
   must(await chain.send(t[EXITER], [revokeIx(A, EXITER)]), 'EXITER revokes the delegate')
   await rejectedUnchanged(chain, watched, crankExit(exitE), TOKEN_ERR.ownerMismatch,
     'auto_exit after the owner revoked the delegate rejected by Token-2022 (OwnerMismatch)', tokenProgramFailed(TOKEN_ERR.ownerMismatch))
@@ -320,6 +363,90 @@ async function autoExitSuite(ctx: Ctx): Promise<void> {
   console.log('-- auto_exit: after the exit')
   await rejectedUnchanged(chain, watched, crankExit(exitE), ERR.invalidExitAmount, 'a second auto_exit on the same position rejected')
   await setterBoundaries(ctx)
+
+  console.log('-- auto_exit: a full sell clears the deadline (ONC-19)')
+  await fullSellClearsDeadline(ctx)
+  console.log('-- auto_exit: a victim delegated to market A, cranked through market B (ONC-19)')
+  await crossMarketVictim(ctx)
+}
+
+/** ONC-19 review gaps on EXITER's due, delegated position: non-ATA owner accounts, another market's buffer or pool. */
+async function smuggledAccountsRejected(ctx: Ctx, watched: PublicKey[]): Promise<void> {
+  const { chain, A, B } = ctx
+  const crank = A.traders[CRANKER]
+  const owner = A.traders[EXITER].publicKey
+  const crankExit = (a: Partial<AutoExitAccounts>) => () =>
+    chain.send(crank, [autoExitIx(A, { ...exitOf(A, EXITER, crank.publicKey), ...a })])
+  const ownerQuote = await nonAtaAccount(chain, crank, A.quoteMintPk, owner, A.quoteTokenProgram)
+  const ownerBase = await nonAtaAccount(chain, crank, A.baseMint.publicKey, owner, TOKEN_2022_PROGRAM_ID)
+  await rejectedUnchanged(chain, [...watched, ownerQuote], crankExit({ ownerQuote }), ERR.constraintAssociated,
+    "non-canonical owner_quote rejected (a non-ATA quote account of the owner's, created by the cranker)")
+  await rejectedUnchanged(chain, [...watched, ownerBase], crankExit({ ownerBase }), ERR.constraintAssociated,
+    "non-canonical owner_base rejected (a non-ATA base account of the owner's, created by the cranker)")
+  const withB = [...watched, B.buffer, B.pool]
+  await rejectedUnchanged(chain, withB, crankExit({ buffer: B.buffer }), ERR.constraintHasOne, 'buffer_vault of market B with market A rejected')
+  await rejectedUnchanged(chain, withB, crankExit({ pool: B.pool }), ERR.constraintSeeds, 'pool of market B with market A rejected')
+}
+
+/** ONC-19: a sell that empties a position clears its deadline, so a re-bought position cannot be auto-exited on the old one. */
+async function fullSellClearsDeadline(ctx: Ctx): Promise<void> {
+  const { chain, A } = ctx
+  const seller = A.traders[FULL_SELLER]
+  const crank = A.traders[CRANKER]
+  const pos = A.positionOf(FULL_SELLER)
+  must(await chain.send(seller, A.buyIxs(FULL_SELLER, SEED_BUY)), 'A buy FULL_SELLER')
+  must(await chain.send(seller, [approveMarketIx(A, FULL_SELLER, U64_MAX)]), 'FULL_SELLER approves market PDA')
+  const deadline = (await clockUnixTimestamp(chain)) + 1n
+  must(await setAutoExit(ctx, seller, own(ctx, FULL_SELLER), deadline), 'FULL_SELLER sets deadline')
+  const tokens = (await A.readPosition(FULL_SELLER)).tokens
+  must(await chain.send(seller, [A.sellIx(FULL_SELLER, tokens)]), 'manual full sell')
+  const after = await positionBytes(ctx, pos)
+  check(tokens > 0n && after.length === POSITION_LEN && after.readBigUInt64LE(POSITION_TOKENS_OFFSET) === 0n
+    && after.readBigUInt64LE(POSITION_BASIS_OFFSET) === 0n && after.readBigInt64LE(POSITION_DEADLINE_OFFSET) === 0n,
+    'after set_auto_exit a manual full sell clears the deadline (tokens, basis and deadline 0)',
+    `sold=${tokens} deadline=${after.readBigInt64LE(POSITION_DEADLINE_OFFSET)}`)
+
+  must(await chain.send(seller, A.buyIxs(FULL_SELLER, SEED_BUY)), 'FULL_SELLER buys again')
+  await warpTo(chain, deadline)
+  check((await isDelegatedTo(chain, A.ata[FULL_SELLER].base, A.market)) && (await A.readPosition(FULL_SELLER)).tokens > 0n
+    && (await deadlineOf(ctx, pos)) === 0n,
+    're-bought position: old deadline passed, market PDA still its delegate, auto-exit stays disabled (0)')
+  await rejectedUnchanged(chain, [...exitWatched(A, FULL_SELLER), A.ata[CRANKER].quote, A.ata[CRANKER].base],
+    () => chain.send(crank, [autoExitIx(A, exitOf(A, FULL_SELLER, crank.publicKey))]), ERR.autoExitNotDue,
+    'a re-bought position cannot be auto-exited on the deadline set before the full sell')
+}
+
+/**
+ * ONC-19: a victim whose base ATA delegates to market A (deadline passed) and who also holds a due position in market B
+ * cannot be auto-exited through market B's accounts. Control: the same exit through A's own accounts succeeds.
+ */
+async function crossMarketVictim(ctx: Ctx): Promise<void> {
+  const { chain, A, B } = ctx
+  const victim = A.traders[VICTIM]
+  const crank = A.traders[CRANKER]
+  const posB = positionPda(B.market, victim.publicKey)
+  const baseB = getAssociatedTokenAddressSync(B.baseMint.publicKey, victim.publicKey, false, TOKEN_2022_PROGRAM_ID)
+  must(await chain.send(victim, A.buyIxs(VICTIM, SEED_BUY)), 'A buy VICTIM')
+  must(await chain.send(victim, [approveMarketIx(A, VICTIM, U64_MAX)]), 'VICTIM approves market A PDA')
+  must(await chain.send(victim, [
+    createAssociatedTokenAccountIdempotentInstruction(victim.publicKey, baseB, victim.publicKey, B.baseMint.publicKey, TOKEN_2022_PROGRAM_ID),
+    foreignBuyIx(B, victim.publicKey, { position: posB, userQuote: A.ata[VICTIM].quote, userBase: baseB }, SEED_BUY),
+  ]), 'B buy VICTIM (shared quote mint, so the same quote ATA)')
+  const deadline = (await clockUnixTimestamp(chain)) + 1n
+  must(await setAutoExit(ctx, victim, own(ctx, VICTIM), deadline), 'VICTIM sets an A deadline')
+  must(await setAutoExit(ctx, victim, { owner: victim.publicKey, market: B.market, position: posB }, deadline), 'VICTIM sets a B deadline')
+  await warpTo(chain, deadline)
+
+  const victimA = exitOf(A, VICTIM, crank.publicKey)
+  const viaB = (a: Partial<AutoExitAccounts>) => () => chain.send(crank, [autoExitIx(B, { ...victimA, ...a })])
+  const watched = [...exitWatched(A, VICTIM), posB, baseB, B.market, B.buffer, B.pool, B.baseVault, B.quoteVault]
+  await rejectedUnchanged(chain, watched, viaB({}), ERR.constraintSeeds,
+    "victim delegated to market A: its A position through market B's accounts rejected")
+  await rejectedUnchanged(chain, watched, viaB({ position: posB }), ERR.constraintAssociated,
+    'victim delegated to market A: its due B position with the market-A-delegated base ATA through market B rejected')
+  const r = await chain.send(crank, [autoExitIx(A, victimA)])
+  check(r.ok && (await A.readPosition(VICTIM)).tokens === 0n,
+    "control: the same victim is auto-exited through market A's own accounts", r.ok ? '' : r.error.slice(0, 110))
 }
 
 /** The positive path: every field auto_exit touches, checked against values read before the exit. */
