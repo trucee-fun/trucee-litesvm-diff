@@ -43,6 +43,16 @@ function parseArgs() {
 
 export const tradersPath = (outPath: string) => `${outPath}.traders.json`
 
+/** Cluster label for the output file. Never the RPC URL itself: a private URL carries an API key. */
+export function chainLabel(rpc: string | undefined): 'litesvm' | 'devnet' | 'custom' {
+  if (rpc === undefined) return 'litesvm'
+  try {
+    return new URL(rpc).hostname.includes('devnet') ? 'devnet' : 'custom'
+  } catch {
+    return 'custom'
+  }
+}
+
 let liveCleanup: (() => Promise<void>) | null = null
 async function runLiveCleanup(): Promise<void> {
   const cleanup = liveCleanup
@@ -256,7 +266,7 @@ async function main() {
   await runLiveCleanup()
   writeFileSync(outPath, JSON.stringify({
     wsol, surplus: surplus.toString(), claims,
-    chain: chain.name, seed: scenario.seed, accounts: {
+    chain: chainLabel(rpc), seed: scenario.seed, accounts: {
       config: m.config.publicKey.toBase58(), pool: m.pool.toBase58(), base_mint: m.baseMint.publicKey.toBase58(),
       quote_mint: m.quoteMintPk.toBase58(), market: m.market.toBase58(), buffer: m.buffer.toBase58(),
     }, signatures, ops,

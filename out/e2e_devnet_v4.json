@@ -33,7 +33,7 @@
    "by": "crank"
   }
  ],
- "chain": "https://solana-devnet.g.alchemy.com/v2/alch_REDACTED",
+ "chain": "devnet",
  "seed": 4242,
  "accounts": {
   "config": "HbcvzZMWkg3rFHNwsDujFJXazXoWhcWt4dthbJGAaGhs",
