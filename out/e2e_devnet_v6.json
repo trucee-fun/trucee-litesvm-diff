@@ -1,0 +1,428 @@
+{
+ "wsol": true,
+ "surplus": "2351",
+ "claims": [
+  {
+   "trader": 0,
+   "basis": "51015640",
+   "share": "395",
+   "by": "owner"
+  },
+  {
+   "trader": 1,
+   "basis": "51015640",
+   "share": "395",
+   "by": "crank"
+  },
+  {
+   "trader": 2,
+   "basis": "51020284",
+   "share": "395",
+   "by": "crank"
+  },
+  {
+   "trader": 3,
+   "basis": "51230928",
+   "share": "397",
+   "by": "crank"
+  },
+  {
+   "trader": 4,
+   "basis": "49868615",
+   "share": "386",
+   "by": "crank"
+  },
+  {
+   "trader": 5,
+   "basis": "48974451",
+   "share": "379",
+   "by": "crank"
+  }
+ ],
+ "chain": "devnet",
+ "seed": 4242,
+ "accounts": {
+  "config": "6CcpdvFhCYYSqR5YT8fBdcQSmtubSjZgeLriFBaDKGF2",
+  "pool": "HdEpGYZCda5j4rmzi8CHiw3YhCRExhwMEB1hWJdo6xHe",
+  "base_mint": "7sof5H3Q81js4cJz8suEjFYT8CJacL7mECvmpFvBi6yJ",
+  "quote_mint": "So11111111111111111111111111111111111111112",
+  "market": "3CuTfvMa31CrVBTLSikzuEPj2eqf74aRC3FQo4JXb6sK",
+  "buffer": "9HwQhEsZJ239EfNr2EHozm5o195SY69Tc3XaUfVHZFa1"
+ },
+ "signatures": {
+  "create_config_with_transfer_hook": "5ZUnKz4Nx8cwuHYPcNUHxAfPa8TLgXwnxr9gogGiSJMHRUyQkuEpYKQFqvtqLn3yjbQP6rX3SqymQ1YNo7RbLZqB",
+  "initialize pool with hook": "4hQskDC9Up8NMp2CZqMd8T3tKvTqnH3LC35pahCpSkJCmyoMf4oLSjJ1Ny8EJEEksZMsq4U8VcJbej5gGkhnFW8a",
+  "hook: init extra metas": "2FKQgSmPHusJFzEExyf5ikzJpcN3iDzBZfWQdu3a5BQpniEHeEcnaC4nakvT1FRshdpW8ndYzPepUtDSCAqBVi3H",
+  "router: init market": "5B799fSuX7ikds65PKdCk3AfDhK5qNJFGnXWWAs1vPyH2iXxVRSDiEX9NaUrFiUp8asbYhiTG6YiDMoULau3CyY8",
+  "trader 0 setup": "3HMYdHEKuGtwkNUohVn6gGPwJy75LmCvzwo4nn2pqLCQqSB8EkrykyuBSfPNdqnqyM2TdhTrKiRNjUxNzPxujVNb",
+  "trader 1 setup": "a6NPFtJG14vryTNYaepbXQ6JA2QVGwm2MtKyqRUCSD9aub3RwnxesjtinuYpy5k5hy1Kw9NpSor7f8VZRetkBRk",
+  "trader 2 setup": "515Cs47udDHDdcBnFpqENJ6ZZ9tBri4GkDJpXfda6Vr8yTsd1qdHC2rhe2tFNusA4Dmt9F8uxtjJewcvEcnYDGfc",
+  "trader 3 setup": "KQZci99JHbJ9bcMaNRFijG5mPEcdGQig1Cbiyn3CyKwUM9Pm2UY1yqpZJnzXx762X9tB2YUHeP7XXy9B6aBPdqg",
+  "trader 4 setup": "3FchhpPKjn2p5b1At1m8AEssXrKstXR6FK1D4ds3f7kA67r9N9VY77ptvMQc9JofHNEQPkffmhPTXGqHL5fFGAP",
+  "trader 5 setup": "44bXdnsvoD9snc7obUMomMFXZnJKmGfxoBAtw5Cbj2pmsqQQoNwX5wUbTa4R7CfqFW7PEwRjAF3id9noSnbXjagT",
+  "first router buy": "2G6PQZfsSzXaNLcr79aeFe3Ma3u3i61qNwiFuJxEri2MCtVwN2tkRqaftnskbz8926Jk8HyDKKdPQHGbZPt2HgGy",
+  "router: finalize": "3TWpzqcZNmvDPKJAY8BBA7YZY99RdrbC4xkgHqTbWquJBT8j31Fh7hGzauuymNhMZ9eSqcghPFhLgvKe3kLCeh4"
+ },
+ "ops": [
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "3644452",
+   "ok": true,
+   "signature": "29a5KQLHceEZcryvRYydiC96yAkCP4E7kNPJwjazEFtoLwmDTSbAhpyxnZhUauh9aHa63M1MJfL5cfvZnvAMvS3e",
+   "tokens_out": "7477088614564",
+   "basis_after": "3607991"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "56056658",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 5,
+   "amount": "590713",
+   "ok": true,
+   "signature": "2fDgK14HB3h24P5deUJherSrpyBndE9svq2yPQxdwztC7MspRrKB1WQAqQXDmyH2dYj5FaycJSayvnUCPLCono18",
+   "tokens_out": "1185186597268",
+   "basis_after": "584789"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "33852230",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "3487367",
+   "ok": true,
+   "signature": "4m8LEpbzQ4wjTdWG1uUrefsnXtbpqkTPo8CT1iYTqBgMGTLhr8jjcHz9k2KGUuAPNrrWgt9pwnDiuoP1xWkwhGMa",
+   "tokens_out": "6850944028563",
+   "basis_after": "3452477"
+  },
+  {
+   "kind": "buy",
+   "trader": 5,
+   "amount": "40112559",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "584789"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "7477088614564",
+   "ok": true,
+   "signature": "29CAU3Ryu7c9ZXxfue2jGrDgzKHJ9qvcubWQ9sCzUXGDb4NcYEnLoinfpmtEvft5Y1m5RcMH3hSMDrVz78qdyELa",
+   "refund": "3571909",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "28490108520701",
+   "ok": true,
+   "signature": "BZf6WQhKAf7ZC3aSpXz1v4gZg52caUexuFbHiaVk6VYtbu1ec4XhLkVnV19KWjRKyxs2ypRzBQeAUZmdDvy9oS8",
+   "refund": "12272999",
+   "basis_after": "2607699"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "65071602",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "251310",
+   "ok": true,
+   "signature": "3KMLjt7BYtcf3TQJmsLCvAjNWjZduV6cqZLPnUW43R5szcQ7NtcbGc5QNYqz8dSTj2ELvNNmiEiQgmQp83zS5vSL",
+   "tokens_out": "580980019470",
+   "basis_after": "248780"
+  },
+  {
+   "kind": "sell",
+   "trader": 0,
+   "amount": "5992885013116",
+   "ok": true,
+   "signature": "5hnvBZw8oFLAA3EejbWPUkwpkF5QCj6ipzW5P5NFmDcE4EVZUUDhZLDj1YLZJ8spibwmcSxJ1Qrgd6c8FLEyhD8Z",
+   "refund": "2581620",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "180185566744",
+   "ok": true,
+   "signature": "3iX71pxkNwVn7faE1nGxCbGWEnqntX2AENcd8x3Uujq3J2p7hxpYMQ2pkYTVqZZ881hUpHbuDeRDPHtQ1CBVCSgz",
+   "refund": "76382",
+   "basis_after": "171624"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "18907647",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "3452477"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "517497",
+   "ok": true,
+   "signature": "4q6XXH9T65TQYE5f2rZTBjLRhhbGAaVaPW7Gq9T8o4rRVi31mG4wCNaraFApjbsQ2YosNXZFhxrnaLA6wkmfFj6m",
+   "tokens_out": "1227093551510",
+   "basis_after": "3964783"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "52189422",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "25967988",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "373634474310",
+   "ok": true,
+   "signature": "2zGvzbq19eqDAGzB5gAokB2BJ1v8UC7nYdLv6umPjGyUmiJYKuX93FvpHaa178FS9LLSZpgYVLK5LhZNj5Ysi3yd",
+   "refund": "158391",
+   "basis_after": "11631"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "19864507457",
+   "ok": true,
+   "signature": "4paoMwCNCjwYLqG1AGTxNBBKWvb661jP56YVnTWQpQ3gxHFVJUh7p99bCJ5x5BTp5jyjTA1df4U3QmmgqPATYR1A",
+   "refund": "8418",
+   "basis_after": "3125"
+  },
+  {
+   "kind": "buy",
+   "trader": 2,
+   "amount": "102649",
+   "ok": true,
+   "signature": "2ysySFGsGL6R5ZhndedSawG5AUVz2ZFK9nPLkCB4JKwdxerZozrkasueMkQrdMneRhiNrqLtDYrvnZXhnxBHtNxi",
+   "tokens_out": "243003955204",
+   "basis_after": "4066389"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "1482354",
+   "ok": true,
+   "signature": "2PqiTytnd4LCgn8N92DHxYPC1nPUcaBwD9X4mPQ2BXQScyAEjxNTpL9RGbbfPjDTEfZkvSCR8sNGHNWE9azhzgFS",
+   "tokens_out": "3477983321487",
+   "basis_after": "1467514"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "2101073383245",
+   "ok": true,
+   "signature": "3Hu36sQexHVWsbbbpXg7bzDBYChJD6KExwMskez7W1Nno6M8wtfKJToSfvtyzLR7FWpaJdXx1ZK21qBwVCkKHMcH",
+   "refund": "1016498",
+   "basis_after": "3039621"
+  },
+  {
+   "kind": "buy",
+   "trader": 5,
+   "amount": "7436470",
+   "ok": true,
+   "signature": "37gygNr4YXYPpqNYBR7fJX5MTdQgPsep1cinYFzzTkQhiPSyhao9mmhVb1fBdXDqgVNu8WGfgzirxMZb8PZLAdBR",
+   "tokens_out": "16774126038456",
+   "basis_after": "7946878"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "22258959",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "3125"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "44300896",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "70478762",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "3125"
+  },
+  {
+   "kind": "sell",
+   "trader": 4,
+   "amount": "3477983321487",
+   "ok": true,
+   "signature": "4gr398saWhg5LmWhpdgvuwSRi1eVajjivTjzvuPioEVgEzAAokVR7JDVA7QPNGk5TCDGGXxvdxrqtR94Xm7kWGqQ",
+   "refund": "1452836",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "53373718",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "4899454438518",
+   "ok": true,
+   "signature": "5CKK8MooapDY1G85x7bybJgPC9Sn4mfWBM9nFA1DyNrYGoQzQavKSVvHpb9XB2pca6mXLVuZzjc2BggmdvVYPQ8M",
+   "refund": "2370356",
+   "basis_after": "645319"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "958088565996",
+   "ok": true,
+   "signature": "MgDbwjQQQZKDzBPZnP18ao99N47JcgvAUmLu9jdx9tQqkBwWemXrJm6huv1NGeyUiphhREhUazWWDz5p35nSXCT",
+   "refund": "463521",
+   "basis_after": "177113"
+  },
+  {
+   "kind": "sell",
+   "trader": 3,
+   "amount": "7295470959",
+   "ok": true,
+   "signature": "cpobyPoJz1ts1vDURSv7bPffC2Sy3EP7siaRmkcFPKNsm8DsveRnsxkyY6iUV4ph4UoG5ULvVzCtvjF67iXkybz",
+   "refund": "3091",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "212988535285",
+   "ok": true,
+   "signature": "5GmgD1pSLdjgCVCotpWAFTNziY8N5JLvfTFdg6uFMPV738LXEbnGeFuJxhMrsq28VEmV7e187BZosQiXuR3Uhizn",
+   "refund": "103042",
+   "basis_after": "73028"
+  },
+  {
+   "kind": "sell",
+   "trader": 5,
+   "amount": "8409251828161",
+   "ok": true,
+   "signature": "4ZzB71G9qLeGBHABnTytpRsF6xo2m7sLjWzyMicVX2bVobnqEtFBDENnsVsYbjG7XVkqSdodxhsJoKTEn7HXA6PD",
+   "refund": "3683825",
+   "basis_after": "4225840"
+  },
+  {
+   "kind": "buy",
+   "trader": 5,
+   "amount": "71077564",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "4225840"
+  },
+  {
+   "kind": "sell",
+   "trader": 5,
+   "amount": "9550060807563",
+   "ok": true,
+   "signature": "2xUkZYCmU5GWjyt7LwVcn1WsHJDYs8uaB6tVKTSrvTcU4EJ4RVwxyZ8Uzk5ywxMA9TEbsUojYs1NGiHGniNp8yB3",
+   "refund": "4183579",
+   "basis_after": "0"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "1872638",
+   "ok": true,
+   "signature": "4zs8UjRpGyTKwGUPAbo2eBgoadD7JtWiw8j9WErwmkURiPJfGYbnDrT4HsQcmse9ZZN6niDPrXTMSSVZAEUdiVyU",
+   "tokens_out": "4581829281847",
+   "basis_after": "1853895"
+  },
+  {
+   "kind": "buy",
+   "trader": 3,
+   "amount": "217479",
+   "ok": true,
+   "signature": "2H7KUkuTG2a2fuw2Yoy74EDG3q6x23r5EBJaQKi4BV8vQ4NAPwGqU7kgdEs91GqJLdqV68JzkKAN81j4JvXCJnkV",
+   "tokens_out": "525745009525",
+   "basis_after": "215288"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "134514467039",
+   "ok": true,
+   "signature": "3Vjd76aFVTABqbj1XXwTH1ZWwPY2eTFFS6JVmw5wo7rY95dFFNB2vNuHSabHFaJ868AyeihdAPrESKYdVPoRxXBt",
+   "refund": "65075",
+   "basis_after": "7293"
+  },
+  {
+   "kind": "buy",
+   "trader": 4,
+   "amount": "42868426",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "1853895"
+  },
+  {
+   "kind": "buy",
+   "trader": 1,
+   "amount": "39243221",
+   "ok": false,
+   "error": "Simulation failed.  :: Program log: AnchorError thrown in programs/zpvp_router/src/lib.rs:111. Error Code: PositionCapExceeded. Error Number: 6022. Error Message: Buy would exceed the anti-whale cap (20% of curve supply). | Program D4sk6wwELD6cmd7tv6hE4hkxQP8SF8tjdegYym8iWNNb failed: custom program error: 0x1786",
+   "tokens_out": "0",
+   "basis_after": "0"
+  },
+  {
+   "kind": "sell",
+   "trader": 2,
+   "amount": "5420127957",
+   "ok": true,
+   "signature": "5uXhxY6cQK8XCH4zVv2PiRcGJKerA5UHkbEY9MusSxEkZ3ztwnUCN5oMJb9n6duBguLBSY8vZoLM4K7vLuRuKUH6",
+   "refund": "2620",
+   "basis_after": "4644"
+  }
+ ]
+}
