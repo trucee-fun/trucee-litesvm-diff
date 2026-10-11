@@ -5,13 +5,14 @@
  * leftover goes to leftover_receiver) and all LP permanently locked (partner_liquidity_percentage == 0,
  * creator_liquidity_percentage == 0, and partner + creator permanently locked == 100, which leaves nothing for DBC
  * liquidity vesting), no migration fee (migration_fee_percentage == 0 and creator_migration_fee_percentage == 0, so DBC
- * pays nobody a cut of the graduation quote) and DAMM v2 migration (migration_option == 1). Any other config is
+ * pays nobody a cut of the graduation quote), DAMM v2 migration (migration_option == 1) and an immutable token
+ * authority (token_update_authority == 1, so nobody keeps the base mint's mint or metadata authority). Any other config is
  * rejected with PresetNotAllowed (6023), and the rejected init_market moves no funds: the market and buffer PDAs stay
  * empty and no watched account changes.
  *
  * The real DBC program creates every config. Before init_market, the test reads the preset fields from the config's
  * bytes at the router's offsets (ConfigWithTransferHook: migration_option @233, permanently locked LP partner @239 /
- * creator @241, unlocked LP partner @240 / creator @242, fixed supply flag @244, migration fee @247 / creator share
+ * creator @241, unlocked LP partner @240 / creator @242, fixed supply flag @244, token authority @246, migration fee @247 / creator share
  * @248, locked_vesting.amount_per_period @296, locked_vesting.cliff_unlock_amount @328) plus the LP vesting
  * percentages (partner @185, creator @201), and compares each with the DBC IDL decode. DBC itself refuses to create a
  * creator migration fee without a migration fee and DAMM v1 migration; for those two the test shows DBC's refusal, then
@@ -54,6 +55,7 @@ const CONFIG_FIELDS = {
   amountPerPeriod: { offset: 296, size: 8, idl: (c: DecodedConfig) => c.lockedVestingConfig.amountPerPeriod },
   cliffUnlockAmount: { offset: 328, size: 8, idl: (c: DecodedConfig) => c.lockedVestingConfig.cliffUnlockAmount },
   migrationOption: { offset: 233, size: 1, idl: (c: DecodedConfig) => c.migrationOption },
+  tokenAuthority: { offset: 246, size: 1, idl: (c: DecodedConfig) => c.tokenUpdateAuthority },
   migrationFeePercentage: { offset: 247, size: 1, idl: (c: DecodedConfig) => c.migrationFeePercentage },
   creatorMigrationFeePercentage: { offset: 248, size: 1, idl: (c: DecodedConfig) => c.creatorMigrationFeePercentage },
   // not read by the router: the permanently locked sum of 100 leaves them 0
@@ -66,16 +68,24 @@ const FIELD_NAMES = Object.keys(CONFIG_FIELDS) as ConfigField[]
 /** DBC MigrationOption::MetDammV2; MetDamm (DAMM v1) is 0. */
 const MIGRATION_OPTION_DAMM_V2 = 1n
 const MIGRATION_OPTION_DAMM_V1 = 0n
-/** The default fixture config: DAMM v2 migration, partner LP 100% permanently locked, everything else 0. */
+/**
+ * DBC TokenAuthorityOption (`token_update_authority`): only Immutable (1) follows the preset. 0 / 2 leave the creator /
+ * partner the metadata update authority; 3 / 4 also leave them the base mint's mint authority from pool creation on.
+ */
+const TOKEN_AUTHORITY = { creatorUpdate: 0, immutable: 1, partnerUpdate: 2, creatorUpdateAndMint: 3, partnerUpdateAndMint: 4 } as const
+/** The default fixture config: DAMM v2 migration, immutable token authority, partner LP 100% permanently locked, everything else 0. */
 const DEFAULT_VALUES: ConfigValues = {
   ...(Object.fromEntries(FIELD_NAMES.map((f) => [f, 0n])) as ConfigValues),
-  partnerPermanentLockedLp: 100n, migrationOption: MIGRATION_OPTION_DAMM_V2,
+  partnerPermanentLockedLp: 100n, migrationOption: MIGRATION_OPTION_DAMM_V2, tokenAuthority: BigInt(TOKEN_AUTHORITY.immutable),
 }
 
 type Ctx = { chain: Chain; admin: Keypair; scenario: Scenario; quoteMint: PublicKey }
 
-/** A config made from the default fixture parameters plus `overrides`; `expect` lists the fields that differ. */
-type ConfigCase = { label: string; overrides: Record<string, unknown>; expect: Partial<ConfigValues> }
+/**
+ * A config made from the default fixture parameters plus `overrides`; `expect` lists the fields that differ.
+ * `mintAuthorityKept`: DBC leaves the base mint's mint authority with the creator / partner (the admin here).
+ */
+type ConfigCase = { label: string; overrides: Record<string, unknown>; expect: Partial<ConfigValues>; mintAuthorityKept?: boolean }
 /**
  * A config DBC itself refuses to create: `refused` holds the parameters and DBC's error. The router is checked on a
  * default config whose bytes are then set to `patch` in LiteSVM.
@@ -140,11 +150,19 @@ async function opens(ctx: Ctx, c: ConfigCase): Promise<void> {
   const buffer = await chain.accountData(m.buffer)
   check(r.ok && !!market && market.subarray(8, 40).equals(m.pool.toBuffer()) && !!buffer,
     `${c.label} opens a market (market and buffer vault created)`, r.ok ? '' : errorDetail(r))
+  const holder = await mintAuthorityOf(chain, m.baseMint.publicKey)
+  check(!holder, `${c.label}: the base mint has no mint authority`, holder?.toBase58() ?? '')
 }
 
 async function rejected(ctx: Ctx, c: ConfigCase): Promise<void> {
   console.log(`-- ${c.label}`)
-  await initMarketRejected(ctx, c.label, await poolFor(ctx, c))
+  const m = await poolFor(ctx, c)
+  if (c.mintAuthorityKept) {
+    const holder = await mintAuthorityOf(ctx.chain, m.baseMint.publicKey)
+    check(!!holder && holder.equals(ctx.admin.publicKey),
+      `${c.label}: DBC left the base mint's mint authority with the creator / partner (both the admin here)`, holder?.toBase58() ?? 'none')
+  }
+  await initMarketRejected(ctx, c.label, m)
 }
 
 /** Shows that DBC refuses `c.refused`, then that init_market rejects a default config patched to `c.patch`. */
@@ -245,7 +263,24 @@ async function presetBreakers(ctx: Ctx, reference: MarketFixture): Promise<Confi
       overrides: migrationFee(10, 50), expect: { migrationFeePercentage: 10n, creatorMigrationFeePercentage: 50n } },
     { label: 'migration fee 99% with a 100% creator share (DBC maximum: the creator takes 99% of the graduation quote)',
       overrides: migrationFee(99, 100), expect: { migrationFeePercentage: 99n, creatorMigrationFeePercentage: 100n } },
+    tokenAuthority('creator update authority (the creator may rewrite the token metadata)', TOKEN_AUTHORITY.creatorUpdate),
+    tokenAuthority('partner update authority (the partner may rewrite the token metadata)', TOKEN_AUTHORITY.partnerUpdate),
+    tokenAuthority('creator update and mint authority (the creator may mint base tokens without buying)', TOKEN_AUTHORITY.creatorUpdateAndMint),
+    tokenAuthority('partner update and mint authority (the partner may mint base tokens without buying)', TOKEN_AUTHORITY.partnerUpdateAndMint),
   ]
+}
+
+const tokenAuthority = (label: string, option: number): ConfigCase => ({
+  label: `token authority option ${option}: ${label}`, overrides: { tokenUpdateAuthority: option }, expect: { tokenAuthority: BigInt(option) },
+  mintAuthorityKept: option === TOKEN_AUTHORITY.creatorUpdateAndMint || option === TOKEN_AUTHORITY.partnerUpdateAndMint,
+})
+
+/** Token-2022 Mint: mint_authority is a COption<Pubkey> at offset 0 (u32 tag, 1 = Some, then the key). */
+const MINT_AUTHORITY_SOME = 1
+async function mintAuthorityOf(chain: Chain, mint: PublicKey): Promise<PublicKey | null> {
+  const data = await chain.accountData(mint)
+  if (!data) throw new Error(`mint ${mint.toBase58()} not found`)
+  return data.readUInt32LE(0) === MINT_AUTHORITY_SOME ? new PublicKey(data.subarray(4, 36)) : null
 }
 
 /** DBC MigrationFee: `feePercentage` of the graduation quote is withheld from the pool, `creatorFeePercentage` of it
