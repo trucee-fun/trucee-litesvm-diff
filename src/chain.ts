@@ -8,7 +8,10 @@ import {
 } from '@solana/web3.js'
 import { FailedTransactionMetadata, LiteSVM } from 'litesvm'
 
-export type TxResult = { ok: true; cu: bigint; signature?: string } | { ok: false; error: string }
+export type TxResult = { ok: true; cu: bigint; signature?: string; logs?: string[] } | { ok: false; error: string }
+
+/** Raw account contents for `Chain.setAccount`. */
+export type RawAccount = { lamports: bigint; owner: PublicKey; executable: boolean; data: Buffer }
 
 export interface Chain {
   readonly name: string
@@ -18,6 +21,8 @@ export interface Chain {
   lamports(address: PublicKey): Promise<bigint>
   /** Funds a fresh keypair from the chain's funding source. */
   fund(to: PublicKey, lamports: bigint): Promise<void>
+  /** Overwrites an account bypassing the runtime (LiteSVM only): loads mainnet fixtures, sets token balances. */
+  setAccount?(address: PublicKey, account: RawAccount): void
 }
 
 const ERROR_LINE = /Error|failed|AnchorError/
@@ -38,7 +43,7 @@ export function liteSvmChain(programs: [PublicKey, string][]): Chain {
         const logs = res.meta().logs().filter((l) => ERROR_LINE.test(l)).slice(-3).join(' | ')
         return { ok: false, error: `${res.err().toString()} :: ${logs}` }
       }
-      return { ok: true, cu: res.computeUnitsConsumed() }
+      return { ok: true, cu: res.computeUnitsConsumed(), logs: res.logs() }
     },
     async accountData(address) {
       const acc = svm.getAccount(address)
@@ -52,6 +57,14 @@ export function liteSvmChain(programs: [PublicKey, string][]): Chain {
     },
     async fund(to, lamports) {
       svm.airdrop(to, lamports)
+    },
+    setAccount(address, account) {
+      if (account.lamports < 0n || account.lamports > BigInt(Number.MAX_SAFE_INTEGER)) {
+        throw new Error(`setAccount ${address.toBase58()}: lamports ${account.lamports} out of range`)
+      }
+      svm.setAccount(address, {
+        lamports: Number(account.lamports), owner: account.owner, executable: account.executable, data: Uint8Array.from(account.data),
+      })
     },
   }
 }
