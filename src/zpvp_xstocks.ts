@@ -16,7 +16,7 @@ import { Keypair, PublicKey } from '@solana/web3.js'
 import {
   ExtensionType, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID, getExtensionTypes, getTransferHook, unpackMint,
 } from '@solana/spl-token'
-import { deriveTokenBadgeAddress } from '@meteora-ag/dynamic-bonding-curve-sdk'
+import { DYNAMIC_BONDING_CURVE_PROGRAM_ID, deriveTokenBadgeAddress } from '@meteora-ag/dynamic-bonding-curve-sdk'
 import { Chain, TxResult, liteSvmChain } from './chain'
 import {
   CONFIG_SWAP_BASE_AMOUNT_OFFSET, HOOK_ID, MAINNET_FIXTURE_DIR, MARKET_BASIS_SNAPSHOT_OFFSET, MARKET_SURPLUS_SNAPSHOT_OFFSET,
@@ -127,19 +127,24 @@ async function thrownBy(f: () => unknown): Promise<string | null> {
 const readFixtureFile = (address: PublicKey): AccountFixtureFile =>
   JSON.parse(readFileSync(`${MAINNET_FIXTURE_DIR}/${address.toBase58()}.json`, 'utf8'))
 
-/** loadXStockQuote refuses TSLAx snapshots whose mint is not Token-2022's, whose badge is not DBC's, or whose badge names another mint. */
+/**
+ * loadXStockQuote refuses TSLAx snapshots that are another account, whose mint is not Token-2022's, whose badge is not
+ * DBC's, or whose badge names another mint; each with the guard's own message.
+ */
 async function checkFixtureGuards(chain: Chain): Promise<void> {
-  const mint = XSTOCKS.TSLAx
+  const [mint, nvdax] = [XSTOCKS.TSLAx, XSTOCKS.NVDAx]
   const badge = deriveTokenBadgeAddress(mint)
   const [realMint, realBadge] = [readFixtureFile(mint), readFixtureFile(badge)]
-  const nvdaxBadge = readFixtureFile(deriveTokenBadgeAddress(XSTOCKS.NVDAx))
+  const [nvdaxMint, nvdaxBadge] = [readFixtureFile(nvdax), readFixtureFile(deriveTokenBadgeAddress(nvdax))]
+  // base58 has no regex metacharacters, so keys go into the patterns verbatim
   const cases: [string, AccountFixtureFile, AccountFixtureFile, RegExp][] = [
+    ["NVDAx's mint snapshot in the TSLAx mint file (wrong address)", nvdaxMint, realBadge, new RegExp(`: address is ${nvdax}$`)],
     ['a TSLAx mint owned by SPL Token, not Token-2022', { ...realMint, owner: TOKEN_PROGRAM_ID.toBase58() }, realBadge,
-      /owner is Tokenkeg\w+, expected TokenzQ/],
+      new RegExp(`: owner is ${TOKEN_PROGRAM_ID}, expected ${TOKEN_2022_PROGRAM_ID}$`)],
     ['a TSLAx badge owned by Token-2022, not DBC', realMint, { ...realBadge, owner: TOKEN_2022_PROGRAM_ID.toBase58() },
-      /owner is TokenzQ\w+, expected dbci/],
+      new RegExp(`: owner is ${TOKEN_2022_PROGRAM_ID}, expected ${DYNAMIC_BONDING_CURVE_PROGRAM_ID}$`)],
     ["NVDAx's badge at the TSLAx badge address (data[8..40] = NVDAx)", realMint, { ...nvdaxBadge, address: badge.toBase58() },
-      /token badge mint/],
+      new RegExp(`: token badge mint at byte 8 is ${nvdax}, expected ${mint}$`)],
   ]
   const root = mkdtempSync(join(tmpdir(), 'zpvp-fixtures-'))
   try {
@@ -156,19 +161,26 @@ async function checkFixtureGuards(chain: Chain): Promise<void> {
   }
 }
 
-/** setTokenAmount rewrites only a wallet's ATA under its own token program: never the buffer or a pool vault. */
+/**
+ * setTokenAmount rewrites only a wallet's ATA under its own token program: never the buffer or a pool vault. Each
+ * refusal must come from the matching guard (its message), not from any unrelated throw.
+ */
 async function checkTokenAmountGuards(m: MarketFixture, quoteProgram: PublicKey): Promise<void> {
-  const cases: [string, PublicKey, PublicKey][] = [
-    ['the market buffer vault', m.buffer, quoteProgram],
-    ['the pool quote vault', m.quoteVault, quoteProgram],
-    ['the pool base vault', m.baseVault, TOKEN_2022_PROGRAM_ID],
-    ["a trader's TSLAx ATA named under SPL Token (wrong token program)", m.ata[0].quote, TOKEN_PROGRAM_ID],
+  const heldByProgram = (account: PublicKey) => new RegExp(`^setTokenAmount: ${account} is held by a program \\(authority \\w+ is a PDA\\)`)
+  const trader0Quote = m.ata[0].quote
+  const cases: [string, PublicKey, PublicKey, RegExp][] = [
+    ['the market buffer vault', m.buffer, quoteProgram, heldByProgram(m.buffer)],
+    ['the pool quote vault', m.quoteVault, quoteProgram, heldByProgram(m.quoteVault)],
+    ['the pool base vault', m.baseVault, TOKEN_2022_PROGRAM_ID, heldByProgram(m.baseVault)],
+    ["a trader's TSLAx ATA named under SPL Token (wrong token program)", trader0Quote, TOKEN_PROGRAM_ID,
+      new RegExp(`^setTokenAmount: ${trader0Quote} is not the ${TOKEN_PROGRAM_ID} ATA of ${m.traders[0].publicKey} for ${m.quoteMintPk}`)],
   ]
-  for (const [label, account, program] of cases) {
+  for (const [label, account, program, expected] of cases) {
     const [before] = await stateOf(m.chain, [account])
     const error = await thrownBy(() => setTokenAmount(m.chain, account, program, PROBE_AMOUNT))
     const [after] = await stateOf(m.chain, [account])
-    check(error !== null && before === after, `setTokenAmount refuses ${label}, no balance change`, error ?? 'rewritten!')
+    check(error !== null && expected.test(error) && before === after, `setTokenAmount refuses ${label}, no balance change`,
+      `${before === after ? '' : 'STATE CHANGED '}${error ?? 'rewritten!'}`)
   }
 }
 
@@ -223,7 +235,7 @@ async function main() {
   must(init, 'init_market (TSLAx)')
   await checkBufferVault(m, tslax.mint)
   await checkTokenAmountGuards(m, tslax.tokenProgram)
-  const fee =u64At(await readAccount(chain, m.market, 'market'), MARKET_FEE_OFFSET)
+  const fee = u64At(await readAccount(chain, m.market, 'market'), MARKET_FEE_OFFSET)
 
   // ===== 2. buy records basis = net quote into the curve - DUST_PER_BUY
   const reserve = async () => u64At(await readAccount(chain, m.pool, 'pool'), POOL_QUOTE_RESERVE_OFFSET)

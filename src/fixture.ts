@@ -36,6 +36,7 @@ export const POOL_MIGRATION_PROGRESS_OFFSET = 308
 export const POOL_QUOTE_RESERVE_OFFSET = 240
 // ConfigWithTransferHook: PoolConfig fields, swap_base_amount sits right before migration_quote_threshold (264)
 export const CONFIG_SWAP_BASE_AMOUNT_OFFSET = 256
+export const CONFIG_MIGRATION_QUOTE_THRESHOLD_OFFSET = 264
 export const HOOK_REJECTION = /TransferNotViaRouter|CUNNV1MqVB53N4jWn91uVFXm1dBSyaynR6iBCbufJWMS failed/
 
 export const { program: dbc } = createDbcProgram(new Connection('http://127.0.0.1:1'))

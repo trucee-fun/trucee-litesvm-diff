@@ -9,7 +9,9 @@ import { readFileSync } from 'node:fs'
 import { Keypair, PublicKey, SystemProgram } from '@solana/web3.js'
 import { MINT_SIZE, TOKEN_2022_PROGRAM_ID, createInitializeMint2Instruction } from '@solana/spl-token'
 import { Chain, TxResult, liteSvmChain } from './chain'
-import { QuoteOptions, Scenario, XStock, anchorError, check, createMarketFixture, loadXStockQuote, must } from './fixture'
+import {
+  CONFIG_MIGRATION_QUOTE_THRESHOLD_OFFSET, QuoteOptions, Scenario, XStock, anchorError, check, createMarketFixture, loadXStockQuote, must,
+} from './fixture'
 import { zpvpPrograms } from './zpvp_e2e'
 
 /** zpvp_router QUOTE_CAPS for wSOL (lamports): 10 SOL. */
@@ -65,10 +67,22 @@ async function main() {
   const sol = (s: Scenario) => `${Number(s.migration_quote_threshold) / 1e9} SOL`
   result(await tryMarket(small, false), `custom quote mint (threshold ${sol(small)}) rejected 6017`, QUOTE_MINT_NOT_ALLOWED)
   result(await tryMarket(justAbove, true), `wSOL, threshold ${sol(justAbove)} > 10 SOL rejected 6018`, THRESHOLD_TOO_HIGH)
-  // the exact wSOL boundary, on the curve of the smallest scenario above the cap (built for a threshold near 10 SOL)
-  result(await tryMarket(withThreshold(justAbove, WSOL_CAP), true), `wSOL threshold ${WSOL_CAP} (exactly 10 SOL) accepted`, null)
-  result(await tryMarket(withThreshold(justAbove, WSOL_CAP + 1n), true), `wSOL threshold ${WSOL_CAP + 1n} rejected 6018`,
-    THRESHOLD_TOO_HIGH)
+
+  // Exact wSOL boundary. The router's cap check (init_market) reads only the DBC config's quote_mint and
+  // migration_quote_threshold, so the curve matters only in that DBC must accept the config. No scenario is built for
+  // exactly 10 SOL; the smallest one above the cap is built for a slightly higher threshold, and lowering its threshold
+  // to 10 SOL only moves the migration point down that same curve. DBC accepts both configs (createMarketFixture's
+  // create_config step aborts the run otherwise) and the threshold DBC stored is read back, so the two probes differ
+  // in nothing but one lamport of threshold.
+  const tryWsolAt = async (threshold: bigint) => {
+    const f = await createMarketFixture(chain, admin, withThreshold(justAbove, threshold),
+      { wsol: true, traderCount: 0, traderLamports: 0n, skipMarket: true })
+    const stored = (await chain.accountData(f.config.publicKey))?.readBigUInt64LE(CONFIG_MIGRATION_QUOTE_THRESHOLD_OFFSET)
+    if (stored !== threshold) throw new Error(`DBC config stores migration_quote_threshold ${stored}, expected ${threshold}`)
+    return chain.send(admin, [f.initMarketIx()])
+  }
+  result(await tryWsolAt(WSOL_CAP), `wSOL threshold ${WSOL_CAP} (exactly 10 SOL, as stored by DBC) accepted`, null)
+  result(await tryWsolAt(WSOL_CAP + 1n), `wSOL threshold ${WSOL_CAP + 1n} (as stored by DBC) rejected 6018`, THRESHOLD_TOO_HIGH)
   result(await tryMarket(small, true), `wSOL, threshold ${sol(small)} accepted`, null)
 
   // xStock quotes: allowlisted, each with its own threshold cap; probed exactly at the cap and one raw unit above
