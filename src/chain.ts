@@ -6,7 +6,7 @@ import { homedir } from 'node:os'
 import {
   Connection, Keypair, PublicKey, SendTransactionError, SystemProgram, Transaction, TransactionInstruction,
 } from '@solana/web3.js'
-import { FailedTransactionMetadata, LiteSVM } from 'litesvm'
+import { Clock, FailedTransactionMetadata, LiteSVM } from 'litesvm'
 
 export type TxResult = { ok: true; cu: bigint; signature?: string; logs?: string[] } | { ok: false; error: string }
 
@@ -23,7 +23,12 @@ export interface Chain {
   fund(to: PublicKey, lamports: bigint): Promise<void>
   /** Overwrites an account bypassing the runtime (LiteSVM only): loads mainnet fixtures, sets token balances. */
   setAccount?(address: PublicKey, account: RawAccount): void
+  /** Warps the clock sysvar's unix_timestamp, leaving slot and epoch alone (LiteSVM only). */
+  setClock?(unixTimestamp: bigint): void
 }
+
+const I64_MIN = -(2n ** 63n)
+const I64_MAX = 2n ** 63n - 1n
 
 const ERROR_LINE = /Error|failed|AnchorError/
 
@@ -65,6 +70,11 @@ export function liteSvmChain(programs: [PublicKey, string][]): Chain {
       svm.setAccount(address, {
         lamports: Number(account.lamports), owner: account.owner, executable: account.executable, data: Uint8Array.from(account.data),
       })
+    },
+    setClock(unixTimestamp) {
+      if (unixTimestamp < I64_MIN || unixTimestamp > I64_MAX) throw new Error(`setClock: unix timestamp ${unixTimestamp} is not an i64`)
+      const c = svm.getClock()
+      svm.setClock(new Clock(c.slot, c.epochStartTimestamp, c.epoch, c.leaderScheduleEpoch, unixTimestamp))
     },
   }
 }
