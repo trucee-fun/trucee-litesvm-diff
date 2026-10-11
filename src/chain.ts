@@ -2,11 +2,12 @@
  * Minimal execution backend so the same Zero-PvP scenario runs on LiteSVM or a live cluster.
  *
  * A private RPC URL carries the provider's API key, so it is never printed: live scripts take `--rpc env` (the URL
- * comes from DEVNET_RPC, not argv), chains are named by `chainLabel`, and errors pass through `redactRpc`.
+ * comes from DEVNET_RPC, not argv), chains are named by `chainLabel`, and errors and console output pass through
+ * `redactRpc`.
  */
 import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { inspect } from 'node:util'
+import { format, inspect } from 'node:util'
 import {
   Connection, Keypair, PublicKey, SendTransactionError, SystemProgram, Transaction, TransactionInstruction,
 } from '@solana/web3.js'
@@ -93,6 +94,8 @@ export const PUBLIC_DEVNET_RPC = 'https://api.devnet.solana.com'
 export const RPC_ENV_VAR = 'DEVNET_RPC'
 const RPC_FROM_ENV = 'env'
 const REDACTED = '[redacted]'
+/** Path segments, query values and credentials shorter than this are not treated as secrets on their own. */
+const MIN_SECRET_PART = 8
 const EXIT_FAILURE = 1
 const EXIT_USAGE = 2
 
@@ -126,22 +129,60 @@ export function rpcFromArgs(args: readonly string[]): string | undefined {
   return url
 }
 
-/** The URL plus each piece of it that can carry the key (host, credentials, path, query), longest first. */
+/** A string plus its encodeURIComponent and decodeURIComponent forms. */
+function uriVariants(s: string): string[] {
+  const variants = [s, encodeURIComponent(s)]
+  try {
+    variants.push(decodeURIComponent(s))
+  } catch {
+    // malformed % escape: the raw and encoded forms still cover it
+  }
+  return variants
+}
+
+/**
+ * Everything in the URL that can carry the provider key, raw, URI-encoded and URI-decoded, longest first. The URL,
+ * href and host always count. Path, query and credential pieces (including each path segment and each query value,
+ * so a bare key is caught) count from MIN_SECRET_PART characters.
+ */
 function secretParts(url: string): string[] {
-  const parts = [url]
+  const always = [url]
+  const pieces: string[] = []
   try {
     const u = new URL(url)
-    parts.push(u.href, u.host, u.hostname, u.username, u.password, u.pathname, u.search, u.pathname + u.search)
+    always.push(u.href, u.host, u.hostname)
+    pieces.push(u.username, u.password, u.pathname, u.search, u.pathname + u.search,
+      ...u.pathname.split('/'), ...u.searchParams.values())
   } catch {
     // not a parseable URL: only the raw string can be matched
   }
-  return [...new Set(parts)].filter((p) => p.length > 1).sort((a, b) => b.length - a.length)
+  const parts = [
+    ...always.flatMap(uriVariants).filter((p) => p.length > 0),
+    ...pieces.flatMap(uriVariants).filter((p) => p.length >= MIN_SECRET_PART),
+  ]
+  return [...new Set(parts)].sort((a, b) => b.length - a.length)
 }
 
-/** Replaces the RPC URL, its host and its path/query with [redacted]. */
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Replaces the RPC URL, its host and every key-like piece of it with [redacted], ignoring case. */
 export function redactRpc(text: string, url: string | undefined): string {
   if (!url) return text
-  return secretParts(url).reduce((out, part) => out.split(part).join(REDACTED), text)
+  return text.replace(new RegExp(secretParts(url).map(escapeRegExp).join('|'), 'gi'), REDACTED)
+}
+
+/**
+ * Routes console.log, console.warn and console.error through redactRpc until the process exits, so web3.js's own
+ * lines ("ws error: ...", 429 retry notices, socket-close errors) are redacted too.
+ */
+function redactConsole(currentUrl: () => string | undefined): void {
+  const original = { log: console.log, warn: console.warn, error: console.error }
+  const wrap = (write: (...args: unknown[]) => void) =>
+    (...args: unknown[]): void => write(redactRpc(format(...args), currentUrl()))
+  console.log = wrap(original.log)
+  console.warn = wrap(original.warn)
+  console.error = wrap(original.error)
+  process.once('exit', () => Object.assign(console, original))
 }
 
 /** First line of an error's message, redacted. */
@@ -156,12 +197,14 @@ export function describeError(err: unknown, url: string | undefined): string {
 
 /**
  * Entry point for scripts that may talk to a private RPC. `main` gets the `--rpc` URL (undefined without the flag).
- * Every error, including unhandled rejections from inside web3.js, is printed redacted. After the first one, `onError`
- * runs once (e.g. to return trader SOL), then the process exits 2 on a UsageError and 1 otherwise.
+ * Console output is redacted for the life of the process. Every error, including unhandled rejections from inside
+ * web3.js, is printed redacted. After the first one, `onError` runs once (e.g. to return trader SOL), then the process
+ * exits 2 on a UsageError and 1 otherwise.
  */
 export function runRpcScript(main: (rpc: string | undefined) => Promise<void>, onError?: () => Promise<void>): void {
   let rpc: string | undefined
   let failed = false
+  redactConsole(() => rpc)
   const fail = async (err: unknown): Promise<void> => {
     console.error(describeError(err, rpc))
     if (failed) return
