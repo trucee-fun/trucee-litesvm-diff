@@ -2,18 +2,26 @@
  * xStock (Token-2022) quote market end to end on LiteSVM, against the capped router build: a TSLAx-quoted Zero-PvP
  * market from init_market through exit-at-cost, graduation, finalize and claims, plus the `market` field of the
  * router events. TSLAx mint + DBC token badge are mainnet snapshots (fixtures/mainnet); we hold no mint authority,
- * so traders get TSLAx by rewriting their ATA balance.
+ * so traders get TSLAx by rewriting their ATA balance. Negatives (each rejected with its exact code, nothing moved):
+ * exit above the position, a direct base-token transfer before graduation, a claim before finalize, a double claim,
+ * plus the fixture guards (snapshot owners, badge mint, setTokenAmount refusing program-held accounts).
  *
  * Usage: npx tsx src/zpvp_xstocks.ts SCENARIOS.json INDEX   (ROUTER_SO=... to pick the router binary)
  */
 import { createHash } from 'node:crypto'
-import { readFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Keypair, PublicKey } from '@solana/web3.js'
-import { ExtensionType, TOKEN_2022_PROGRAM_ID, getExtensionTypes, getTransferHook, unpackMint } from '@solana/spl-token'
+import {
+  ExtensionType, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID, getExtensionTypes, getTransferHook, unpackMint,
+} from '@solana/spl-token'
+import { deriveTokenBadgeAddress } from '@meteora-ag/dynamic-bonding-curve-sdk'
 import { Chain, TxResult, liteSvmChain } from './chain'
 import {
-  CONFIG_SWAP_BASE_AMOUNT_OFFSET, HOOK_ID, MARKET_BASIS_SNAPSHOT_OFFSET, MARKET_SURPLUS_SNAPSHOT_OFFSET, MARKET_TOTAL_BASIS_OFFSET,
-  MarketFixture, POOL_QUOTE_RESERVE_OFFSET, Scenario, anchorError, check, createMarketFixture, loadXStockQuote, must, setTokenAmount,
+  CONFIG_SWAP_BASE_AMOUNT_OFFSET, HOOK_ID, MAINNET_FIXTURE_DIR, MARKET_BASIS_SNAPSHOT_OFFSET, MARKET_SURPLUS_SNAPSHOT_OFFSET,
+  MARKET_TOTAL_BASIS_OFFSET, MarketFixture, POOL_QUOTE_RESERVE_OFFSET, Scenario, XSTOCKS, anchorError, check, createMarketFixture,
+  loadXStockQuote, must, setTokenAmount,
 } from './fixture'
 import { zpvpPrograms } from './zpvp_e2e'
 
@@ -39,8 +47,20 @@ const MARKET_FEE_OFFSET = 232
 const TOKEN_ACCOUNT_LEN = 165
 const ACCOUNT_TYPE_ACCOUNT = 2 // Token-2022 AccountType::Account, the byte after the 165-byte base layout
 const PROGRAM_DATA = 'Program data: '
+/** Balance setTokenAmount is asked to write into accounts it must refuse (any change would show). */
+const PROBE_AMOUNT = 1n
+
+type Rejection = readonly [code: number, name: string]
+/** Exact rejections: zpvp_hook HookError, zpvp_router RouterError, and Anchor's error for a closed (missing) position. */
+const ERR = {
+  transferNotViaRouter: [6000, 'TransferNotViaRouter'],
+  invalidExitAmount: [6007, 'InvalidExitAmount'],
+  notFinalized: [6011, 'NotFinalized'],
+  accountNotInitialized: [3012, 'AccountNotInitialized'],
+} as const satisfies Record<string, Rejection>
 
 type EventName = 'BuyEvent' | 'SellEvent' | 'ClaimEvent'
+type AccountFixtureFile = { address: string; owner: string; lamports: number; executable: boolean; data: string }
 
 /** refund_for(basis, fee) = basis - ceil(basis * fee / 1e9) - 2, floored at zero (math.rs). */
 function refundFor(basis: bigint, fee: bigint): bigint {
@@ -76,6 +96,80 @@ async function transferHookOf(chain: Chain, mint: PublicKey): Promise<PublicKey 
   const data = await readAccount(chain, mint, 'mint')
   const info = unpackMint(mint, { data, owner: TOKEN_2022_PROGRAM_ID, lamports: 0, executable: false }, TOKEN_2022_PROGRAM_ID)
   return getTransferHook(info)?.programId ?? null
+}
+
+/** Hex of every watched account: equal before and after means a rejected transaction moved no funds and changed no state. */
+const stateOf = (chain: Chain, accounts: PublicKey[]) =>
+  Promise.all(accounts.map(async (a) => (await chain.accountData(a))?.toString('hex') ?? 'missing'))
+
+/** Sends, then asserts the exact Anchor error of instruction 0 and that no watched account changed. */
+async function rejectedUnchanged(
+  chain: Chain, watched: PublicKey[], send: () => Promise<TxResult>, [code, name]: Rejection, label: string,
+): Promise<void> {
+  const before = await stateOf(chain, watched)
+  const r = await send()
+  const unchanged = (await stateOf(chain, watched)).every((d, k) => d === before[k])
+  const matches = !r.ok && anchorError(code, name).test(r.error)
+  check(matches && unchanged, `${label} rejected ${code} ${name}, no balance change`,
+    `${unchanged ? '' : 'STATE CHANGED '}${r.ok ? 'SUCCEEDED (vulnerable!)' : r.error.replace(/\s+/g, ' ').slice(0, 110)}`)
+}
+
+/** The message `f` throws (sync or async), or null if it returns. */
+async function thrownBy(f: () => unknown): Promise<string | null> {
+  try {
+    await f()
+    return null
+  } catch (e) {
+    return e instanceof Error ? e.message : String(e)
+  }
+}
+
+const readFixtureFile = (address: PublicKey): AccountFixtureFile =>
+  JSON.parse(readFileSync(`${MAINNET_FIXTURE_DIR}/${address.toBase58()}.json`, 'utf8'))
+
+/** loadXStockQuote refuses TSLAx snapshots whose mint is not Token-2022's, whose badge is not DBC's, or whose badge names another mint. */
+async function checkFixtureGuards(chain: Chain): Promise<void> {
+  const mint = XSTOCKS.TSLAx
+  const badge = deriveTokenBadgeAddress(mint)
+  const [realMint, realBadge] = [readFixtureFile(mint), readFixtureFile(badge)]
+  const nvdaxBadge = readFixtureFile(deriveTokenBadgeAddress(XSTOCKS.NVDAx))
+  const cases: [string, AccountFixtureFile, AccountFixtureFile, RegExp][] = [
+    ['a TSLAx mint owned by SPL Token, not Token-2022', { ...realMint, owner: TOKEN_PROGRAM_ID.toBase58() }, realBadge,
+      /owner is Tokenkeg\w+, expected TokenzQ/],
+    ['a TSLAx badge owned by Token-2022, not DBC', realMint, { ...realBadge, owner: TOKEN_2022_PROGRAM_ID.toBase58() },
+      /owner is TokenzQ\w+, expected dbci/],
+    ["NVDAx's badge at the TSLAx badge address (data[8..40] = NVDAx)", realMint, { ...nvdaxBadge, address: badge.toBase58() },
+      /token badge mint/],
+  ]
+  const root = mkdtempSync(join(tmpdir(), 'zpvp-fixtures-'))
+  try {
+    for (const [k, [label, mintFile, badgeFile, expected]] of cases.entries()) {
+      const dir = join(root, `case${k}`)
+      mkdirSync(dir)
+      writeFileSync(join(dir, `${mint.toBase58()}.json`), JSON.stringify(mintFile))
+      writeFileSync(join(dir, `${badge.toBase58()}.json`), JSON.stringify(badgeFile))
+      const error = await thrownBy(() => loadXStockQuote(chain, 'TSLAx', dir))
+      check(error !== null && expected.test(error), `fixture loader refuses ${label}`, error?.replace(`${dir}/`, '') ?? 'loaded!')
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+}
+
+/** setTokenAmount rewrites only a wallet's ATA under its own token program: never the buffer or a pool vault. */
+async function checkTokenAmountGuards(m: MarketFixture, quoteProgram: PublicKey): Promise<void> {
+  const cases: [string, PublicKey, PublicKey][] = [
+    ['the market buffer vault', m.buffer, quoteProgram],
+    ['the pool quote vault', m.quoteVault, quoteProgram],
+    ['the pool base vault', m.baseVault, TOKEN_2022_PROGRAM_ID],
+    ["a trader's TSLAx ATA named under SPL Token (wrong token program)", m.ata[0].quote, TOKEN_PROGRAM_ID],
+  ]
+  for (const [label, account, program] of cases) {
+    const [before] = await stateOf(m.chain, [account])
+    const error = await thrownBy(() => setTokenAmount(m.chain, account, program, PROBE_AMOUNT))
+    const [after] = await stateOf(m.chain, [account])
+    check(error !== null && before === after, `setTokenAmount refuses ${label}, no balance change`, error ?? 'rewritten!')
+  }
 }
 
 function parseArgs(): { scenario: Scenario } {
@@ -118,6 +212,7 @@ async function main() {
     probeRes.ok ? 'accepted!' : '')
 
   // ===== 1. TSLAx (mainnet Token-2022 mint + DBC token badge) as the quote of a transfer-hook pool
+  await checkFixtureGuards(chain)
   const tslax = loadXStockQuote(chain, 'TSLAx')
   const m = await createMarketFixture(chain, admin, scenario, {
     wsol: false, traderCount: TRADERS, traderLamports: TRADER_LAMPORTS, skipMarket: true, quote: tslax })
@@ -127,7 +222,8 @@ async function main() {
   check(init.ok, 'init_market accepts TSLAx on the capped build', init.ok ? `threshold ${threshold} raw` : init.error.slice(0, 160))
   must(init, 'init_market (TSLAx)')
   await checkBufferVault(m, tslax.mint)
-  const fee = u64At(await readAccount(chain, m.market, 'market'), MARKET_FEE_OFFSET)
+  await checkTokenAmountGuards(m, tslax.tokenProgram)
+  const fee =u64At(await readAccount(chain, m.market, 'market'), MARKET_FEE_OFFSET)
 
   // ===== 2. buy records basis = net quote into the curve - DUST_PER_BUY
   const reserve = async () => u64At(await readAccount(chain, m.pool, 'pool'), POOL_QUOTE_RESERVE_OFFSET)
@@ -144,6 +240,14 @@ async function main() {
     !!buyEv && keyAt(buyEv, 40).equals(traders[0].publicKey) && u64At(buyEv, 72) === pos0.tokens &&
     u64At(buyEv, 80) === netIntoCurve && u64At(buyEv, 88) === pos0.basis,
   'buy records basis', `amount_in=${firstBuy} net_into_curve=${netIntoCurve} basis=${pos0.basis} tokens=${pos0.tokens}`)
+
+  // ===== 2b. before graduation a position leaves only by an exit at cost of at most its tokens
+  const watched01 = [m.positionOf(0), m.positionOf(1), m.market, m.buffer, ata[0].quote, ata[0].base, ata[1].quote, ata[1].base,
+    m.pool, m.baseVault, m.quoteVault, m.baseMint.publicKey]
+  await rejectedUnchanged(chain, watched01, () => chain.send(traders[0], [m.sellIx(0, pos0.tokens + 1n)]), ERR.invalidExitAmount,
+    'exit of one token more than the position')
+  await rejectedUnchanged(chain, watched01, () => chain.send(traders[0], [m.transferIx(0, 1, pos0.tokens, true)]),
+    ERR.transferNotViaRouter, 'direct wallet-to-wallet base-token transfer before graduation (hook)')
 
   // ===== 3. the price rises (trader 1 buys), trader 0 exits at cost: refund_for(basis, fee) in TSLAx, gain stays in the buffer
   must(record('BuyEvent', await chain.send(traders[1], m.buyIxs(1, firstBuy))), 'trader 1 buy')
@@ -181,7 +285,11 @@ async function main() {
   check(!!hookBefore?.equals(HOOK_ID) && !!hookAfter?.equals(PublicKey.default), 'graduation revokes the hook',
     `${hookBefore?.toBase58().slice(0, 8)} -> ${hookAfter?.toBase58().slice(0, 8)}`)
 
-  // ===== 5. finalize freezes the buffer as surplus; every holder claims pro-rata in TSLAx
+  // ===== 5. finalize freezes the buffer as surplus; every holder claims pro-rata in TSLAx, once
+  const claimWatched = (i: number) => [m.positionOf(i), m.market, m.buffer, ata[i].quote]
+  const claimBy = (i: number) => () => chain.send(traders[i], [m.claimIx(traders[i].publicKey, i)])
+  // trader 1 bought in step 3 and never sold, so its position is open
+  await rejectedUnchanged(chain, claimWatched(1), claimBy(1), ERR.notFinalized, 'claim after graduation, before finalize')
   const positionsBasis = positions.reduce((a, p) => a + p.basis, 0n)
   const bufferAtGrad = await balanceOf(m.buffer)
   must(await chain.send(admin, [m.finalizeIx()]), 'finalize')
@@ -197,13 +305,17 @@ async function main() {
   let claimsOk = true
   for (const i of holders) {
     const before = await balanceOf(ata[i].quote)
-    const claim = record('ClaimEvent', await chain.send(traders[i], [m.claimIx(traders[i].publicKey, i)]))
+    const claim = record('ClaimEvent', await claimBy(i)())
     must(claim, `claim ${i}`)
     const share = (await balanceOf(ata[i].quote)) - before
     const [claimEv] = eventsOf(claim, 'ClaimEvent')
     claimsOk &&= share === (surplus * positions[i].basis) / basisSnapshot && !!claimEv && u64At(claimEv, 80) === share &&
       keyAt(claimEv, 40).equals(traders[i].publicKey) && (await chain.accountData(positionOf(i))) === null
     paid += share
+    // the first claimer tries again while the buffer still holds everyone else's surplus
+    if (i === holders[0]) {
+      await rejectedUnchanged(chain, claimWatched(i), claimBy(i), ERR.accountNotInitialized, 'double claim (position closed by the first)')
+    }
   }
   const residual = await balanceOf(m.buffer)
   check(claimsOk, 'each holder claimed exactly surplus*basis/total in TSLAx and its position closed', `${holders.length} holders`)

@@ -1,6 +1,7 @@
 /**
  * Mainnet-beta launch caps, run against the default (capped) router build: only allowlisted quote mints, each with a
- * graduation threshold cap (wSOL 10 SOL, TSLAx 5 shares, NVDAx 10 shares). xStocks are mainnet Token-2022 snapshots.
+ * graduation threshold cap (wSOL 10 SOL, TSLAx 5 shares, NVDAx 10 shares), each probed exactly at the cap and one raw
+ * unit above. xStocks are mainnet Token-2022 snapshots.
  *
  * Usage: ROUTER_SO=programs/router_capped.so npx tsx src/zpvp_caps.ts SCENARIOS.json SMALL_SCENARIO.json
  */
@@ -11,14 +12,27 @@ import { Chain, TxResult, liteSvmChain } from './chain'
 import { QuoteOptions, Scenario, XStock, anchorError, check, createMarketFixture, loadXStockQuote, must } from './fixture'
 import { zpvpPrograms } from './zpvp_e2e'
 
-const MAX_THRESHOLD = 10_000_000_000n
+/** zpvp_router QUOTE_CAPS for wSOL (lamports): 10 SOL. */
+const WSOL_CAP = 10_000_000_000n
 /** zpvp_router QUOTE_CAPS for the xStocks (raw units, 8 decimals). */
 const XSTOCK_CAPS: [XStock, bigint][] = [['TSLAx', 500_000_000n], ['NVDAx', 1_000_000_000n]]
 const XSTOCK_DECIMALS = 8
+const QUOTE_MINT_NOT_ALLOWED = anchorError(6017, 'QuoteMintNotAllowed')
+const THRESHOLD_TOO_HIGH = anchorError(6018, 'ThresholdTooHigh')
 
 function result(r: TxResult, label: string, expected: RegExp | null): void {
   const ok = expected === null ? r.ok : !r.ok && expected.test(r.error)
   check(ok, label, r.ok ? 'accepted' : r.error.replace(/\s+/g, ' ').slice(0, 100))
+}
+
+const thresholdOf = (s: Scenario) => BigInt(s.migration_quote_threshold)
+const withThreshold = (s: Scenario, threshold: bigint): Scenario => ({ ...s, migration_quote_threshold: threshold.toString() })
+
+/** The scenario with the smallest threshold above `cap`: its curve is built for a threshold near the cap. */
+function smallestAbove(scenarios: Scenario[], cap: bigint, path: string): Scenario {
+  const above = scenarios.filter((s) => thresholdOf(s) > cap)
+  if (above.length === 0) throw new Error(`${path}: no scenario with a threshold above ${cap}, cannot probe the wSOL cap`)
+  return above.reduce((min, s) => (thresholdOf(s) < thresholdOf(min) ? s : min))
 }
 
 /** A fresh Token-2022 mint with no extensions: a valid DBC quote, but not on the router allowlist. */
@@ -34,12 +48,11 @@ async function createToken2022Mint(chain: Chain, admin: Keypair, decimals: numbe
 
 async function main() {
   const [scenariosPath, smallPath] = process.argv.slice(2)
+  if (!scenariosPath || !smallPath) throw new Error('usage: zpvp_caps.ts SCENARIOS.json SMALL_SCENARIO.json')
   const scenarios: Scenario[] = JSON.parse(readFileSync(scenariosPath, 'utf8'))
-  const small: Scenario = JSON.parse(readFileSync(smallPath, 'utf8'))[0]
-  // smallest threshold above the cap, to probe the boundary as tightly as the scenario set allows
-  const justAbove = scenarios
-    .filter((s) => BigInt(s.migration_quote_threshold) > MAX_THRESHOLD)
-    .sort((a, b) => Number(BigInt(a.migration_quote_threshold) - BigInt(b.migration_quote_threshold)))[0]
+  const small: Scenario | undefined = JSON.parse(readFileSync(smallPath, 'utf8'))[0]
+  if (!small) throw new Error(`${smallPath}: no scenario at index 0`)
+  const justAbove = smallestAbove(scenarios, WSOL_CAP, scenariosPath)
 
   const chain = liteSvmChain(zpvpPrograms())
   const admin = Keypair.generate()
@@ -50,25 +63,28 @@ async function main() {
   }
 
   const sol = (s: Scenario) => `${Number(s.migration_quote_threshold) / 1e9} SOL`
-  result(await tryMarket(small, false), `custom quote mint (threshold ${sol(small)}) rejected`, /code: 6017/)
-  result(await tryMarket(justAbove, true), `wSOL, threshold ${sol(justAbove)} > 10 SOL rejected`, /code: 6018/)
+  result(await tryMarket(small, false), `custom quote mint (threshold ${sol(small)}) rejected 6017`, QUOTE_MINT_NOT_ALLOWED)
+  result(await tryMarket(justAbove, true), `wSOL, threshold ${sol(justAbove)} > 10 SOL rejected 6018`, THRESHOLD_TOO_HIGH)
+  // the exact wSOL boundary, on the curve of the smallest scenario above the cap (built for a threshold near 10 SOL)
+  result(await tryMarket(withThreshold(justAbove, WSOL_CAP), true), `wSOL threshold ${WSOL_CAP} (exactly 10 SOL) accepted`, null)
+  result(await tryMarket(withThreshold(justAbove, WSOL_CAP + 1n), true), `wSOL threshold ${WSOL_CAP + 1n} rejected 6018`,
+    THRESHOLD_TOO_HIGH)
   result(await tryMarket(small, true), `wSOL, threshold ${sol(small)} accepted`, null)
 
   // xStock quotes: allowlisted, each with its own threshold cap; probed exactly at the cap and one raw unit above
   const tryQuote = async (threshold: bigint, quote: QuoteOptions) => {
-    const scenario = { ...small, migration_quote_threshold: threshold.toString() }
-    const f = await createMarketFixture(chain, admin, scenario, { wsol: false, traderCount: 0, traderLamports: 0n, skipMarket: true, quote })
+    const f = await createMarketFixture(chain, admin, withThreshold(small, threshold),
+      { wsol: false, traderCount: 0, traderLamports: 0n, skipMarket: true, quote })
     return chain.send(admin, [f.initMarketIx()])
   }
-  const thresholdTooHigh = anchorError(6018, 'ThresholdTooHigh')
   for (const [name, cap] of XSTOCK_CAPS) {
     const quote = loadXStockQuote(chain, name)
     result(await tryQuote(cap, quote), `${name} threshold ${cap} accepted`, null)
-    result(await tryQuote(cap + 1n, quote), `${name} threshold ${cap + 1n} rejected 6018`, thresholdTooHigh)
+    result(await tryQuote(cap + 1n, quote), `${name} threshold ${cap + 1n} rejected 6018`, THRESHOLD_TOO_HIGH)
   }
   const fresh = await createToken2022Mint(chain, admin, XSTOCK_DECIMALS)
   result(await tryQuote(XSTOCK_CAPS[0][1], { mint: fresh, tokenProgram: TOKEN_2022_PROGRAM_ID, decimals: XSTOCK_DECIMALS }),
-    'fresh non-allowlisted Token-2022 mint rejected 6017', anchorError(6017, 'QuoteMintNotAllowed'))
+    'fresh non-allowlisted Token-2022 mint rejected 6017', QUOTE_MINT_NOT_ALLOWED)
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })

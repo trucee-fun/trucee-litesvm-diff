@@ -280,11 +280,22 @@ export type XStock = keyof typeof XSTOCKS
 
 const MINT_DECIMALS_OFFSET = 44
 const MINT_INITIALIZED_OFFSET = 45
+// Token account base layout: mint 32 | owner (authority) 32 | amount u64 | ...
+const TOKEN_ACCOUNT_MINT_OFFSET = 0
+const TOKEN_ACCOUNT_AUTHORITY_OFFSET = 32
 const TOKEN_ACCOUNT_AMOUNT_OFFSET = 64
 const TOKEN_ACCOUNT_BASE_LEN = 165
+// DBC TokenBadge (borsh): disc 8 | token_mint 32 | ...
+const TOKEN_BADGE_MINT_OFFSET = 8
+const PUBKEY_LEN = 32
 const U64_MAX = 2n ** 64n - 1n
 
 type AccountFixture = { address: string; owner: string; lamports: number; executable: boolean; data: string }
+
+/** What a mainnet snapshot must be: owned by `owner` and, optionally, holding `key` at byte `offset` (e.g. a badge's mint). */
+export type FixtureExpectation = { owner: PublicKey; keyAt?: { offset: number; key: PublicKey; what: string } }
+
+const keyIn = (data: Buffer, offset: number) => new PublicKey(data.subarray(offset, offset + PUBKEY_LEN))
 
 function parseAccountFixture(raw: unknown, path: string): AccountFixture {
   const f = raw as Partial<AccountFixture> | null
@@ -294,36 +305,66 @@ function parseAccountFixture(raw: unknown, path: string): AccountFixture {
   return f as AccountFixture
 }
 
-/** Writes a mainnet account snapshot (`<dir>/<address>.json`) into a chain that supports `setAccount`. */
-export function loadAccountFixture(chain: Chain, address: PublicKey, dir = MAINNET_FIXTURE_DIR): void {
+/**
+ * Writes a mainnet account snapshot (`<dir>/<address>.json`) into a chain that supports `setAccount`, after checking
+ * that it is `address`, is owned by `expected.owner` and, if given, holds `expected.keyAt.key` at its offset.
+ */
+export function loadAccountFixture(chain: Chain, address: PublicKey, expected: FixtureExpectation, dir = MAINNET_FIXTURE_DIR): void {
   if (!chain.setAccount) throw new Error(`${chain.name}: cannot load account fixtures (LiteSVM only)`)
   const path = `${dir}/${address.toBase58()}.json`
   const fixture = parseAccountFixture(JSON.parse(readFileSync(path, 'utf8')), path)
   if (fixture.address !== address.toBase58()) throw new Error(`${path}: address is ${fixture.address}`)
-  chain.setAccount(address, {
-    lamports: BigInt(fixture.lamports), owner: new PublicKey(fixture.owner), executable: fixture.executable,
-    data: Buffer.from(fixture.data, 'base64'),
-  })
+  if (fixture.owner !== expected.owner.toBase58()) {
+    throw new Error(`${path}: owner is ${fixture.owner}, expected ${expected.owner.toBase58()}`)
+  }
+  const data = Buffer.from(fixture.data, 'base64')
+  const field = expected.keyAt
+  if (field) {
+    const found = data.length < field.offset + PUBKEY_LEN ? null : keyIn(data, field.offset)
+    if (!found?.equals(field.key)) {
+      throw new Error(`${path}: ${field.what} at byte ${field.offset} is ${found?.toBase58() ?? `missing (${data.length} bytes)`}, ` +
+        `expected ${field.key.toBase58()}`)
+    }
+  }
+  chain.setAccount(address, { lamports: BigInt(fixture.lamports), owner: expected.owner, executable: fixture.executable, data })
 }
 
-/** Loads an xStock mint and its DBC token badge from mainnet fixtures; returns the fixture `quote` option. */
-export function loadXStockQuote(chain: Chain, name: XStock): QuoteOptions {
+/**
+ * Loads an xStock mint (owned by Token-2022) and its DBC token badge (owned by DBC, naming that mint) from mainnet
+ * fixtures in `dir`; returns the fixture `quote` option.
+ */
+export function loadXStockQuote(chain: Chain, name: XStock, dir = MAINNET_FIXTURE_DIR): QuoteOptions {
   const mint = XSTOCKS[name]
   const badge = deriveTokenBadgeAddress(mint)
-  loadAccountFixture(chain, mint)
-  loadAccountFixture(chain, badge)
+  loadAccountFixture(chain, mint, { owner: TOKEN_2022_PROGRAM_ID }, dir)
+  loadAccountFixture(chain, badge, {
+    owner: DYNAMIC_BONDING_CURVE_PROGRAM_ID, keyAt: { offset: TOKEN_BADGE_MINT_OFFSET, key: mint, what: 'token badge mint' },
+  }, dir)
   return { mint, tokenProgram: TOKEN_2022_PROGRAM_ID, decimals: XSTOCK_DECIMALS, badge }
 }
 
 /**
- * Sets a token account's raw balance (u64 at byte 64) without minting: we do not hold mainnet mint authorities.
- * `tokenProgram` must be the program that owns the account.
+ * Sets a wallet's token balance (u64 at byte 64) without minting: we do not hold mainnet mint authorities.
+ * Only the wallet's canonical ATA under `tokenProgram` qualifies. Chain exposes no account owner, but the ATA program
+ * creates exactly that address owned by `tokenProgram`, so the address proves owner == `tokenProgram` (a wrong
+ * `tokenProgram` derives another address). Accounts held by a program (authority off curve: the router buffer, the
+ * DBC pool vaults) are refused.
  */
 export async function setTokenAmount(chain: Chain, tokenAccount: PublicKey, tokenProgram: PublicKey, amount: bigint): Promise<void> {
   if (!chain.setAccount) throw new Error(`${chain.name}: cannot set token balances (LiteSVM only)`)
   if (amount < 0n || amount > U64_MAX) throw new Error(`token amount ${amount} is not a u64`)
   const data = await chain.accountData(tokenAccount)
   if (!data || data.length < TOKEN_ACCOUNT_BASE_LEN) throw new Error(`token account ${tokenAccount.toBase58()} does not exist`)
+  const mint = keyIn(data, TOKEN_ACCOUNT_MINT_OFFSET)
+  const authority = keyIn(data, TOKEN_ACCOUNT_AUTHORITY_OFFSET)
+  if (!PublicKey.isOnCurve(authority.toBytes())) {
+    throw new Error(`setTokenAmount: ${tokenAccount.toBase58()} is held by a program (authority ${authority.toBase58()} is a PDA), refusing`)
+  }
+  const ata = getAssociatedTokenAddressSync(mint, authority, false, tokenProgram)
+  if (!ata.equals(tokenAccount)) {
+    throw new Error(`setTokenAmount: ${tokenAccount.toBase58()} is not the ${tokenProgram.toBase58()} ATA of ${authority.toBase58()} ` +
+      `for ${mint.toBase58()} (wrong token program, or not a wallet ATA)`)
+  }
   const next = Buffer.from(data)
   next.writeBigUInt64LE(amount, TOKEN_ACCOUNT_AMOUNT_OFFSET)
   chain.setAccount(tokenAccount, { lamports: await chain.lamports(tokenAccount), owner: tokenProgram, executable: false, data: next })
