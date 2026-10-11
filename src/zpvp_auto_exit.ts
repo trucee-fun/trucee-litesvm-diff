@@ -347,6 +347,7 @@ async function autoExitSuite(ctx: Ctx): Promise<void> {
   await rejectedUnchanged(chain, watched, crankExit({ ...exitOf(A, CRANKER, crank.publicKey), position: posE }), ERR.constraintSeeds,
     "owner + both ATAs swapped to the cranker's rejected")
   await smuggledAccountsRejected(ctx, watched)
+  await delegateNotSpendableBySell(ctx, watched)
   must(await chain.send(t[EXITER], [revokeIx(A, EXITER)]), 'EXITER revokes the delegate')
   await rejectedUnchanged(chain, watched, crankExit(exitE), TOKEN_ERR.ownerMismatch,
     'auto_exit after the owner revoked the delegate rejected by Token-2022 (OwnerMismatch)', tokenProgramFailed(TOKEN_ERR.ownerMismatch))
@@ -386,6 +387,26 @@ async function smuggledAccountsRejected(ctx: Ctx, watched: PublicKey[]): Promise
   const withB = [...watched, B.buffer, B.pool]
   await rejectedUnchanged(chain, withB, crankExit({ buffer: B.buffer }), ERR.constraintHasOne, 'buffer_vault of market B with market A rejected')
   await rejectedUnchanged(chain, withB, crankExit({ pool: B.pool }), ERR.constraintSeeds, 'pool of market B with market A rejected')
+}
+
+/**
+ * ONC-08: the market PDA's delegation over a holder's base ATA is spent only by auto_exit. `sell` swaps with the
+ * signing user as DBC payer and never signs as the market, so a cranker naming the delegated victim's base ATA (with
+ * its own position, or with the victim's) is rejected by the router before any transfer.
+ */
+async function delegateNotSpendableBySell(ctx: Ctx, watched: PublicKey[]): Promise<void> {
+  const { chain, A } = ctx
+  const crank = A.traders[CRANKER]
+  const victimBase = A.ata[EXITER].base
+  const tokens = (await A.readPosition(EXITER)).tokens
+  check(await isDelegatedTo(chain, victimBase, A.market) && tokens > 0n, "victim's base ATA is delegated to the market PDA", `tokens=${tokens}`)
+  const crankSell = (o: { position?: PublicKey }) => () =>
+    chain.send(crank, [A.sellIx(CRANKER, tokens, { userBase: victimBase, ...o })])
+  const withCranker = [...watched, A.positionOf(CRANKER)]
+  await rejectedUnchanged(chain, withCranker, crankSell({}), ERR.constraintTokenOwner,
+    "sell by a cranker naming the market-delegated victim's base ATA rejected")
+  await rejectedUnchanged(chain, withCranker, crankSell({ position: A.positionOf(EXITER) }), ERR.constraintSeeds,
+    "sell by a cranker naming the victim's position and market-delegated base ATA rejected")
 }
 
 /** ONC-19: a sell that empties a position clears its deadline, so a re-bought position cannot be auto-exited on the old one. */
