@@ -2,7 +2,7 @@
  * End-to-end Zero-PvP PoC against the real DBC program, on LiteSVM or a live cluster.
  *
  * Usage:
- *   npx tsx src/zpvp_e2e.ts SCENARIOS.json INDEX OUT.json                 # LiteSVM (DBC_SO=... to pick binary)
+ *   npx tsx src/zpvp_e2e.ts SCENARIOS.json INDEX OUT.json                 # LiteSVM (DBC_SO, HOOK_SO, ROUTER_SO pick binaries)
  *   npx tsx src/zpvp_e2e.ts SCENARIOS.json INDEX OUT.json --rpc env --ops 12  # live cluster, ~/.config/solana/id.json pays
  * `--rpc env` reads the URL from DEVNET_RPC (exit 2 when unset), so the provider key never reaches argv; a literal URL
  * still works for local validators. The URL is never printed or written to OUT.json.
@@ -55,7 +55,7 @@ async function runLiveCleanup(): Promise<void> {
 export function zpvpPrograms(): [PublicKey, string][] {
   return [
     [DYNAMIC_BONDING_CURVE_PROGRAM_ID, process.env.DBC_SO ?? 'programs/dbc.so'],
-    [HOOK_ID, `${ZPVP_DEPLOY}/zpvp_hook.so`],
+    [HOOK_ID, process.env.HOOK_SO ?? `${ZPVP_DEPLOY}/zpvp_hook.so`],
     [ROUTER_ID, process.env.ROUTER_SO ?? `${ZPVP_DEPLOY}/zpvp_router.so`],
   ]
 }
