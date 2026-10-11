@@ -2,7 +2,8 @@
  * Migrates a completed Zero-PvP DBC pool to DAMM v2 on a live cluster using the official SDK,
  * then reports the resulting DAMM v2 pool state.
  *
- * Usage: npx tsx src/migrate_devnet.ts E2E_RESULT.json [--rpc URL]
+ * Usage: npx tsx src/migrate_devnet.ts E2E_RESULT.json [--rpc env|URL]
+ * `--rpc env` reads the URL from DEVNET_RPC (exit 2 when unset); without `--rpc` it uses the public devnet RPC.
  */
 import { readFileSync } from 'node:fs'
 import { Connection, PublicKey, sendAndConfirmTransaction } from '@solana/web3.js'
@@ -10,13 +11,13 @@ import {
   DAMM_V2_MIGRATION_FEE_ADDRESS, DynamicBondingCurveClient, createDbcProgram,
   deriveDammV2PoolAddress,
 } from '@meteora-ag/dynamic-bonding-curve-sdk'
-import { loadKeypair } from './chain'
+import { PUBLIC_DEVNET_RPC, UsageError, errorLine, loadKeypair, runRpcScript } from './chain'
 
-
-async function main() {
-  const args = process.argv.slice(2)
-  const rpc = args.includes('--rpc') ? args[args.indexOf('--rpc') + 1] : 'https://api.devnet.solana.com'
-  const e2e = JSON.parse(readFileSync(args[0], 'utf8'))
+async function main(rpcArg: string | undefined) {
+  const e2ePath = process.argv[2]
+  if (!e2ePath || e2ePath.startsWith('--')) throw new UsageError('usage: migrate_devnet.ts E2E_RESULT.json [--rpc env|URL]')
+  const rpc = rpcArg ?? PUBLIC_DEVNET_RPC
+  const e2e = JSON.parse(readFileSync(e2ePath, 'utf8'))
   const pool = new PublicKey(e2e.accounts.pool)
   const baseMint = new PublicKey(e2e.accounts.base_mint)
   const quoteMint = new PublicKey(e2e.accounts.quote_mint)
@@ -42,7 +43,7 @@ async function main() {
     console.log(`MIGRATION OK  signature=${sig}`)
   } catch (err: unknown) {
     const logs = (err as { logs?: string[] }).logs ?? (err as { transactionLogs?: string[] }).transactionLogs ?? []
-    console.log(`MIGRATION FAILED: ${err instanceof Error ? err.message.split('\n')[0] : String(err)}`)
+    console.log(`MIGRATION FAILED: ${errorLine(err, rpc)}`)
     for (const l of logs.slice(-15)) console.log(`  ${l}`)
     process.exitCode = 1
     return
@@ -55,4 +56,4 @@ async function main() {
   console.log(`DBC migrationProgress(after)=${JSON.stringify(after.poolState.migrationProgress)} isMigrated=${after.poolState.isMigrated}`)
 }
 
-main().catch((e) => { console.error(e); process.exit(1) })
+runRpcScript(main)

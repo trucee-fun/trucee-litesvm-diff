@@ -1,8 +1,12 @@
 /**
  * Minimal execution backend so the same Zero-PvP scenario runs on LiteSVM or a live cluster.
+ *
+ * A private RPC URL carries the provider's API key, so it is never printed: live scripts take `--rpc env` (the URL
+ * comes from DEVNET_RPC, not argv), chains are named by `chainLabel`, and errors pass through `redactRpc`.
  */
 import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
+import { inspect } from 'node:util'
 import {
   Connection, Keypair, PublicKey, SendTransactionError, SystemProgram, Transaction, TransactionInstruction,
 } from '@solana/web3.js'
@@ -83,10 +87,101 @@ export function loadKeypair(path = `${homedir()}/.config/solana/id.json`): Keypa
   return Keypair.fromSecretKey(Uint8Array.from(JSON.parse(readFileSync(path, 'utf8'))))
 }
 
+/** Default for live scripts run without `--rpc`. Public and rate-limited; live e2e runs must not use it. */
+export const PUBLIC_DEVNET_RPC = 'https://api.devnet.solana.com'
+/** `--rpc env` reads the URL from this variable, so the URL never sits in argv where `ps` shows it. */
+export const RPC_ENV_VAR = 'DEVNET_RPC'
+const RPC_FROM_ENV = 'env'
+const REDACTED = '[redacted]'
+const EXIT_FAILURE = 1
+const EXIT_USAGE = 2
+
+/** A bad command line or missing environment: the script exits 2. */
+export class UsageError extends Error {}
+
+/** Cluster label for logs and output files. Never the RPC URL itself: a private URL carries an API key. */
+export function chainLabel(rpc: string | undefined): 'litesvm' | 'devnet' | 'custom' {
+  if (rpc === undefined) return 'litesvm'
+  try {
+    return new URL(rpc).hostname.includes('devnet') ? 'devnet' : 'custom'
+  } catch {
+    return 'custom'
+  }
+}
+
+/**
+ * The URL given by `--rpc`, or undefined when the flag is absent. The literal `env` reads DEVNET_RPC; anything else
+ * is taken as the URL itself (local validators). Throws UsageError when the value or DEVNET_RPC is missing.
+ */
+export function rpcFromArgs(args: readonly string[]): string | undefined {
+  const i = args.indexOf('--rpc')
+  if (i < 0) return undefined
+  const value = args[i + 1]
+  if (value === undefined || value.startsWith('--')) {
+    throw new UsageError(`--rpc needs a value: ${RPC_FROM_ENV} (reads ${RPC_ENV_VAR}) or a local validator URL`)
+  }
+  if (value !== RPC_FROM_ENV) return value
+  const url = process.env[RPC_ENV_VAR]
+  if (!url) throw new UsageError(`${RPC_ENV_VAR} is not set`)
+  return url
+}
+
+/** The URL plus each piece of it that can carry the key (host, credentials, path, query), longest first. */
+function secretParts(url: string): string[] {
+  const parts = [url]
+  try {
+    const u = new URL(url)
+    parts.push(u.href, u.host, u.hostname, u.username, u.password, u.pathname, u.search, u.pathname + u.search)
+  } catch {
+    // not a parseable URL: only the raw string can be matched
+  }
+  return [...new Set(parts)].filter((p) => p.length > 1).sort((a, b) => b.length - a.length)
+}
+
+/** Replaces the RPC URL, its host and its path/query with [redacted]. */
+export function redactRpc(text: string, url: string | undefined): string {
+  if (!url) return text
+  return secretParts(url).reduce((out, part) => out.split(part).join(REDACTED), text)
+}
+
+/** First line of an error's message, redacted. */
+export function errorLine(err: unknown, url: string | undefined): string {
+  return redactRpc(err instanceof Error ? err.message.split('\n')[0] : String(err), url)
+}
+
+/** Full error report (stack, cause chain), redacted. A UsageError prints its message only. */
+export function describeError(err: unknown, url: string | undefined): string {
+  return err instanceof UsageError ? err.message : redactRpc(inspect(err), url)
+}
+
+/**
+ * Entry point for scripts that may talk to a private RPC. `main` gets the `--rpc` URL (undefined without the flag).
+ * Every error, including unhandled rejections from inside web3.js, is printed redacted. After the first one, `onError`
+ * runs once (e.g. to return trader SOL), then the process exits 2 on a UsageError and 1 otherwise.
+ */
+export function runRpcScript(main: (rpc: string | undefined) => Promise<void>, onError?: () => Promise<void>): void {
+  let rpc: string | undefined
+  let failed = false
+  const fail = async (err: unknown): Promise<void> => {
+    console.error(describeError(err, rpc))
+    if (failed) return
+    failed = true
+    await onError?.().catch((e: unknown) => console.error(`cleanup failed: ${describeError(e, rpc)}`))
+    process.exit(err instanceof UsageError ? EXIT_USAGE : EXIT_FAILURE)
+  }
+  process.on('unhandledRejection', fail)
+  process.on('uncaughtException', fail)
+  const run = async () => {
+    rpc = rpcFromArgs(process.argv.slice(2))
+    await main(rpc)
+  }
+  run().catch(fail)
+}
+
 export function rpcChain(url: string, funder: Keypair): Chain {
   const connection = new Connection(url, 'confirmed')
   return {
-    name: url,
+    name: chainLabel(url),
     async send(payer, ixs, signers = []) {
       const tx = new Transaction().add(...ixs)
       const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
@@ -101,7 +196,7 @@ export function rpcChain(url: string, funder: Keypair): Chain {
         return { ok: true, cu: BigInt(meta?.meta?.computeUnitsConsumed ?? 0), signature }
       } catch (err: unknown) {
         const logs = err instanceof SendTransactionError ? (err.logs ?? []).filter((l) => ERROR_LINE.test(l)).slice(-3).join(' | ') : ''
-        return { ok: false, error: `${err instanceof Error ? err.message.split('\n')[0] : String(err)} :: ${logs}` }
+        return { ok: false, error: `${errorLine(err, url)} :: ${redactRpc(logs, url)}` }
       }
     },
     async accountData(address) {

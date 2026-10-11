@@ -3,7 +3,9 @@
  *
  * Usage:
  *   npx tsx src/zpvp_e2e.ts SCENARIOS.json INDEX OUT.json                 # LiteSVM (DBC_SO=... to pick binary)
- *   npx tsx src/zpvp_e2e.ts SCENARIOS.json INDEX OUT.json --rpc URL --ops 12  # live cluster, ~/.config/solana/id.json pays
+ *   npx tsx src/zpvp_e2e.ts SCENARIOS.json INDEX OUT.json --rpc env --ops 12  # live cluster, ~/.config/solana/id.json pays
+ * `--rpc env` reads the URL from DEVNET_RPC (exit 2 when unset), so the provider key never reaches argv; a literal URL
+ * still works for local validators. The URL is never printed or written to OUT.json.
  * Flags: --wsol (quote = native SOL, wrapped client-side), --buy-scale X (multiplies random buy sizes),
  *        --anti-dump (DAMM v2 market-cap fee scheduler preset for the migrated pool)
  */
@@ -11,7 +13,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { Keypair, PublicKey, SystemProgram } from '@solana/web3.js'
 import { TOKEN_2022_PROGRAM_ID, createCloseAccountInstruction, getTransferHook, unpackMint } from '@solana/spl-token'
 import { DYNAMIC_BONDING_CURVE_PROGRAM_ID } from '@meteora-ag/dynamic-bonding-curve-sdk'
-import { Chain, TxResult, liteSvmChain, loadKeypair, rpcChain } from './chain'
+import { Chain, TxResult, UsageError, chainLabel, liteSvmChain, loadKeypair, rpcChain, runRpcScript } from './chain'
 import {
   ANTI_DUMP_OVERRIDES, CONFIG_SWAP_BASE_AMOUNT_OFFSET, HOOK_ID, HOOK_REJECTION, MARKET_BASIS_SNAPSHOT_OFFSET,
   MARKET_SURPLUS_SNAPSHOT_OFFSET, MARKET_TOTAL_BASIS_OFFSET, MarketFixture, ROUTER_ID, Scenario, ZPVP_DEPLOY, check,
@@ -34,24 +36,14 @@ function parseArgs() {
   const args = process.argv.slice(2)
   const flag = (name: string) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined }
   const [scenarioPath, indexArg, outPath] = args
-  if (!scenarioPath || !outPath) throw new Error('usage: zpvp_e2e.ts SCENARIOS.json INDEX OUT.json [--rpc URL] [--ops N] [--wsol] [--buy-scale X]')
+  if (!scenarioPath || !outPath) throw new UsageError('usage: zpvp_e2e.ts SCENARIOS.json INDEX OUT.json [--rpc env|URL] [--ops N] [--wsol] [--buy-scale X]')
   return {
-    scenarioPath, index: Number(indexArg), outPath, rpc: flag('--rpc'), ops: Number(flag('--ops') ?? 120),
+    scenarioPath, index: Number(indexArg), outPath, ops: Number(flag('--ops') ?? 120),
     wsol: args.includes('--wsol'), buyScale: Number(flag('--buy-scale') ?? 1), antiDump: args.includes('--anti-dump'),
   }
 }
 
 export const tradersPath = (outPath: string) => `${outPath}.traders.json`
-
-/** Cluster label for the output file. Never the RPC URL itself: a private URL carries an API key. */
-export function chainLabel(rpc: string | undefined): 'litesvm' | 'devnet' | 'custom' {
-  if (rpc === undefined) return 'litesvm'
-  try {
-    return new URL(rpc).hostname.includes('devnet') ? 'devnet' : 'custom'
-  } catch {
-    return 'custom'
-  }
-}
 
 let liveCleanup: (() => Promise<void>) | null = null
 async function runLiveCleanup(): Promise<void> {
@@ -112,8 +104,9 @@ export async function spreadBuys(m: MarketFixture, threshold: bigint, opts: Spre
   return buys
 }
 
-async function main() {
-  const { scenarioPath, index, outPath, rpc, ops: opCount, wsol, buyScale, antiDump } = parseArgs()
+/** `rpc`: the `--rpc` URL (live cluster), or undefined for LiteSVM. */
+async function main(rpc: string | undefined) {
+  const { scenarioPath, index, outPath, ops: opCount, wsol, buyScale, antiDump } = parseArgs()
   const scenario: Scenario = JSON.parse(readFileSync(scenarioPath, 'utf8'))[index]
   const isLive = rpc !== undefined
   const threshold = BigInt(scenario.migration_quote_threshold)
@@ -273,10 +266,4 @@ async function main() {
   }, null, 1))
 }
 
-if (require.main === module) {
-  main().catch(async (e) => {
-    console.error(e)
-    await runLiveCleanup().catch((err) => console.error('cleanup failed:', err))
-    process.exit(1)
-  })
-}
+if (require.main === module) runRpcScript(main, runLiveCleanup)
