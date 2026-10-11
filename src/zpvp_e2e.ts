@@ -13,15 +13,22 @@ import { TOKEN_2022_PROGRAM_ID, createCloseAccountInstruction, getTransferHook, 
 import { DYNAMIC_BONDING_CURVE_PROGRAM_ID } from '@meteora-ag/dynamic-bonding-curve-sdk'
 import { Chain, TxResult, liteSvmChain, loadKeypair, rpcChain } from './chain'
 import {
-  ANTI_DUMP_OVERRIDES, HOOK_ID, HOOK_REJECTION, MARKET_BASIS_SNAPSHOT_OFFSET, MARKET_SURPLUS_SNAPSHOT_OFFSET, MARKET_TOTAL_BASIS_OFFSET,
-  ROUTER_ID, Scenario, ZPVP_DEPLOY, check, createMarketFixture, must,
+  ANTI_DUMP_OVERRIDES, CONFIG_SWAP_BASE_AMOUNT_OFFSET, HOOK_ID, HOOK_REJECTION, MARKET_BASIS_SNAPSHOT_OFFSET,
+  MARKET_SURPLUS_SNAPSHOT_OFFSET, MARKET_TOTAL_BASIS_OFFSET, MarketFixture, ROUTER_ID, Scenario, ZPVP_DEPLOY, check,
+  createMarketFixture, must,
 } from './fixture'
 
-const TRADERS = 5
+/** Anti-Whale (ONC-04) needs >= 5 positions to graduate a curve; 6 leaves headroom. */
+const TRADERS = 6
 const TRADER_LAMPORTS_LIVE = 30_000_000n // 0.03 SOL: ATAs + position rent + fees
 const TRADER_LAMPORTS_SIM = 10n ** 15n
-const GRADUATION_BUYS = 4n // graduation buy size = threshold / GRADUATION_BUYS
 const TX_FEE_RESERVE = 10_000n
+/** zpvp_router ANTI_WHALE_BPS: one position may hold at most 20% of the config's swap_base_amount. */
+export const ANTI_WHALE_BPS = 2_000n
+export const BPS = 10_000n
+/** Spread buy size = threshold / GRADUATION_CHUNKS, always by the trader holding the fewest tokens. */
+export const GRADUATION_CHUNKS = 100n
+const MAX_SPREAD_BUYS = 400
 
 function parseArgs() {
   const args = process.argv.slice(2)
@@ -51,6 +58,50 @@ export function zpvpPrograms(): [PublicKey, string][] {
   ]
 }
 
+/** The DBC config's swap_base_amount: the base supply the curve sells before graduation. */
+export async function swapBaseAmountOf(chain: Chain, config: PublicKey): Promise<bigint> {
+  const data = await chain.accountData(config)
+  if (!data || data.length < CONFIG_SWAP_BASE_AMOUNT_OFFSET + 8) throw new Error(`config ${config.toBase58()} not found`)
+  return data.readBigUInt64LE(CONFIG_SWAP_BASE_AMOUNT_OFFSET)
+}
+
+/** zpvp_router anti_whale_cap: swap_base_amount * ANTI_WHALE_BPS / BPS (floor). */
+export const antiWhaleCap = (swapBaseAmount: bigint) => (swapBaseAmount * ANTI_WHALE_BPS) / BPS
+
+/** Index of the smallest value (the first one on ties). */
+export function leastHeld(tokens: bigint[]): number {
+  return tokens.reduce((best, x, i) => (x < tokens[best] ? i : best), 0)
+}
+
+export type SpreadOptions = {
+  /** Traders allowed to buy (default: all of the fixture's traders). */
+  who?: number[]
+  /** Sends one buy of `amount` by trader `i` (default: a plain router buy). */
+  buy?: (i: number, amount: bigint) => Promise<TxResult>
+  /** Checked before every buy; the spread stops once it returns true (default: the curve completed). */
+  done?: () => Promise<boolean>
+  maxBuys?: number
+}
+
+/**
+ * Anti-Whale spread: buys threshold / GRADUATION_CHUNKS at a time, each by the trader in `who` holding the fewest
+ * tokens, so no position grows past the cap while the curve fills. Returns the number of buys; throws on a failed
+ * buy that left the curve live.
+ */
+export async function spreadBuys(m: MarketFixture, threshold: bigint, opts: SpreadOptions = {}): Promise<number> {
+  const who = opts.who ?? m.traders.map((_, i) => i)
+  const buy = opts.buy ?? ((i: number, amount: bigint) => m.chain.send(m.traders[i], m.buyIxs(i, amount)))
+  const done = opts.done ?? m.curveDone
+  const chunk = threshold / GRADUATION_CHUNKS
+  let buys = 0
+  for (; buys < (opts.maxBuys ?? MAX_SPREAD_BUYS) && !(await done()); buys++) {
+    const i = who[leastHeld(await Promise.all(who.map(async (k) => (await m.readPosition(k)).tokens)))]
+    const r = await buy(i, chunk)
+    if (!r.ok && !(await m.curveDone())) throw new Error(`spread buy ${buys} by trader ${i} failed: ${r.error}`)
+  }
+  return buys
+}
+
 async function main() {
   const { scenarioPath, index, outPath, rpc, ops: opCount, wsol, buyScale, antiDump } = parseArgs()
   const scenario: Scenario = JSON.parse(readFileSync(scenarioPath, 'utf8'))[index]
@@ -62,7 +113,8 @@ async function main() {
   if (!isLive) await chain.fund(funder.publicKey, 10n ** 15n)
   const signatures: Record<string, string> = {}
   // live wSOL: every trader needs real SOL for its share of the graduation buys plus random buys
-  const liveWsolLamports = threshold / BigInt(TRADERS) + threshold / GRADUATION_BUYS + TRADER_LAMPORTS_LIVE
+  // (spread graduation, LiteSVM: peak need per trader <= 1.16 x threshold / TRADERS on seeds 4242 and 500)
+  const liveWsolLamports = 2n * threshold / BigInt(TRADERS) + TRADER_LAMPORTS_LIVE
   const m = await createMarketFixture(chain, funder, scenario, {
     wsol, traderCount: TRADERS, signatures, configOverrides: antiDump ? ANTI_DUMP_OVERRIDES : undefined,
     traderLamports: !isLive ? TRADER_LAMPORTS_SIM : wsol ? liveWsolLamports : TRADER_LAMPORTS_LIVE,
@@ -141,19 +193,16 @@ async function main() {
     console.log('SKIP  finalize-before-graduation check (curve already completed during the random sequence)')
   }
 
-  // ===== 6. drive to graduation through the router, then the hook must be gone
-  let graduated = false
-  for (let k = 0; k < 400 && !graduated; k++) {
-    const r = await routerBuy(k % TRADERS, threshold / GRADUATION_BUYS)
-    if (!r.ok) {
-      graduated = /6013|PoolIsCompleted|0x177d/.test(r.error)
-      if (!graduated) throw new Error(r.error)
-    }
-  }
+  // ===== 6. drive to graduation through the router (spread so no position passes the Anti-Whale cap), then the hook must be gone
+  const graduationBuys = await spreadBuys(m, threshold, { buy: routerBuy })
+  const graduated = await m.curveDone()
+  const cap = antiWhaleCap(await swapBaseAmountOf(chain, m.config.publicKey))
+  const largest = (await Promise.all(traders.map((_, i) => readPosition(i)))).reduce((a, p) => (p.tokens > a ? p.tokens : a), 0n)
   const mintData = (await chain.accountData(m.baseMint.publicKey))!
   const mintInfo = unpackMint(m.baseMint.publicKey, { data: mintData, owner: TOKEN_2022_PROGRAM_ID, lamports: 0, executable: false } as never, TOKEN_2022_PROGRAM_ID)
   const hook = getTransferHook(mintInfo)
-  check(graduated, 'curve completed via router buys')
+  check(graduated && largest <= cap, 'curve completed via router buys',
+    `${graduationBuys} buys of ${threshold / GRADUATION_CHUNKS}, largest position ${largest} <= cap ${cap}`)
   check(!!hook && hook.programId.equals(PublicKey.default), 'DBC revoked the transfer hook at graduation', hook?.programId.toBase58())
 
   // ===== 7. surplus: finalize snapshots the buffer, holders claim pro-rata to basis, positions close

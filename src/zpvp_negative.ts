@@ -17,10 +17,12 @@ import {
   BASE_DECIMALS, HOOK_ID, HOOK_REJECTION, ROUTER_ID, Scenario, check, configParameters, createMarketFixture, dbc,
   eventAuthority, must, poolAuthority,
 } from './fixture'
-import { zpvpPrograms } from './zpvp_e2e'
+import { GRADUATION_CHUNKS, spreadBuys, zpvpPrograms } from './zpvp_e2e'
 
-const TRADERS = 3
+/** Anti-Whale (ONC-04): a curve needs >= 5 positions to graduate; buys are spread so none passes the cap. */
+const TRADERS = 6
 const TRADER_LAMPORTS = 10n ** 15n
+const PUMP_BUYS = Number(GRADUATION_CHUNKS / 4n) // the price pump spends threshold / 4 in spread chunks
 
 function rejected(r: TxResult, label: string, mustMatch?: RegExp): void {
   const ok = !r.ok && (!mustMatch || mustMatch.test(r.error))
@@ -121,10 +123,12 @@ async function main() {
   const threshold = BigInt(scenario.migration_quote_threshold)
   // build a surplus: trader 2 buys, the price rises, trader 2 exits at cost and the gain stays in the buffer
   must(await send(2, A.buyIxs(2, buy)), 'A buy 2')
-  must(await send(0, A.buyIxs(0, threshold / 4n)), 'A price pump')
+  const pumpers = t.map((_, i) => i).filter((i) => i !== 2)
+  const pumpBuys = await spreadBuys(A, threshold, { who: pumpers, maxBuys: PUMP_BUYS })
+  if (pumpBuys !== PUMP_BUYS) throw new Error(`A price pump: ${pumpBuys}/${PUMP_BUYS} buys before the curve completed`)
   must(await send(2, [A.sellIx(2, (await A.readPosition(2)).tokens)]), 'A trader 2 exits at cost')
   check((await A.balanceOf(A.buffer)) > 0n, 'buffer A holds a surplus', `${await A.balanceOf(A.buffer)}`)
-  for (let k = 0; k < 400 && !(await A.curveDone()); k++) await send(k % TRADERS, A.buyIxs(k % TRADERS, threshold / 4n))
+  await spreadBuys(A, threshold)
   check(await A.curveDone(), 'curve A completed')
   rejected(await send(0, A.buyIxs(0, buy)), 'buy after graduation')
   rejected(await chain.send(admin, [A.finalizeIx({ buffer: B.buffer })]), 'finalize A with buffer B')
