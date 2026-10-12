@@ -19,7 +19,7 @@ import {
 } from './fixture'
 import { GRADUATION_CHUNKS, spreadBuys, zpvpPrograms } from './zpvp_e2e'
 
-/** Anti-Whale (ONC-04): a curve needs >= 5 positions to graduate; buys are spread so none passes the cap. */
+/** Anti-Whale: a curve needs >= 5 positions to graduate; buys are spread so none passes the cap. */
 const TRADERS = 6
 const TRADER_LAMPORTS = 10n ** 15n
 const PUMP_BUYS = Number(GRADUATION_CHUNKS / 4n) // the price pump spends threshold / 4 in spread chunks
@@ -81,7 +81,7 @@ async function main() {
       tokenQuoteProgram: TOKEN_PROGRAM_ID, tokenProgram: TOKEN_2022_PROGRAM_ID, eventAuthority }).instruction()], [plainBase]), 'plain pool')
   rejected(await chain.send(admin, [A.initMarketIx({ pool: plainPool, config: plainConfig.publicKey })]), 'init_market: non-hook DBC pool')
 
-  console.log('-- configs the refund math is not proven for (security review H1/H2)')
+  console.log('-- configs outside the supported static, quote-collected fee model')
   const marketFor = async (label: string, extra: Partial<Parameters<typeof createMarketFixture>[3]>, expected: RegExp) => {
     const f = await createMarketFixture(chain, admin, scenario, {
       wsol: false, traderCount: 0, traderLamports: 0n, quoteMint: A.quoteMintPk, skipMarket: true, ...extra })
@@ -97,7 +97,7 @@ async function main() {
     baseFee, dynamicFee: getDynamicFeeParams(Number(scenario.fee_numerator) / 100_000) } } }, /code: 6014/)
   await marketFor('init_market: fees collected in the base token', { configOverrides: { collectFeeMode: 1 } }, /code: 6014/)
 
-  console.log('-- token account ownership (security review M1)')
+  console.log('-- base token accounts must have immutable ownership')
   const looseAccount = Keypair.generate()
   const looseLen = getAccountLen([ExtensionType.TransferHookAccount])
   must(await chain.send(t[0], [

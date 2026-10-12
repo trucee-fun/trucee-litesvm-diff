@@ -1,16 +1,16 @@
 /**
  * Auto-Exit on LiteSVM.
- * - ONC-11: a position owner stores or clears `Position.auto_exit_deadline` via `set_auto_exit(deadline)`; buys and
+ * - A position owner stores or clears `Position.auto_exit_deadline` via `set_auto_exit(deadline)`; buys and
  *   the setter leave each other's fields alone.
- * - ONC-12: once the deadline has passed and while the curve is live, anyone may `auto_exit` the whole position at
+ * - Once the deadline has passed and while the curve is live, anyone may `auto_exit` the whole position at
  *   cost: the market PDA sells the owner's tokens as their token delegate and the refund lands in the owner's
  *   canonical quote ATA. The clock is warped with `Chain.setClock`.
- * - ONC-19: a sell that empties a position clears its deadline (a re-bought position cannot be auto-exited on the old
+ * - A sell that empties a position clears its deadline (a re-bought position cannot be auto-exited on the old
  *   one); non-ATA owner accounts, another market's buffer or pool, and a victim delegated to market A cranked through
  *   market B's accounts are all rejected.
  * Every rejection asserts its exact error code; auto_exit rejections also assert that no account changed.
  * The curve is graduated by small buys spread over TRADERS wallets (the least-held trader buys next), so no
- * position exceeds the Anti-Whale cap (20% of the config's swap_base_amount, ONC-04) at any point.
+ * position exceeds the Anti-Whale cap (20% of the config's swap_base_amount) at any point.
  *
  * Usage: npx tsx src/zpvp_auto_exit.ts SCENARIOS.json INDEX   (ROUTER_SO=... picks the router binary)
  */
@@ -67,9 +67,9 @@ const TOKEN_DELEGATE_OFFSET = 72 // SPL token account: delegate COption<Pubkey> 
 const EXITER = 2
 const IDLE = 3
 const LATE_BUYER = 4
-const VICTIM = 5 // ONC-19 cross-market victim (holds no position before autoExitSuite)
+const VICTIM = 5 // cross-market victim (holds no position before autoExitSuite)
 const CRANKER = 6
-const FULL_SELLER = 7 // ONC-19: sells the whole position after setting a deadline, then buys again
+const FULL_SELLER = 7 // sells the whole position after setting a deadline, then buys again
 
 const ERR = {
   constraintHasOne: 2001,
@@ -365,13 +365,13 @@ async function autoExitSuite(ctx: Ctx): Promise<void> {
   await rejectedUnchanged(chain, watched, crankExit(exitE), ERR.invalidExitAmount, 'a second auto_exit on the same position rejected')
   await setterBoundaries(ctx)
 
-  console.log('-- auto_exit: a full sell clears the deadline (ONC-19)')
+  console.log('-- auto_exit: a full sell clears the deadline')
   await fullSellClearsDeadline(ctx)
-  console.log('-- auto_exit: a victim delegated to market A, cranked through market B (ONC-19)')
+  console.log('-- auto_exit: a victim delegated to market A, cranked through market B')
   await crossMarketVictim(ctx)
 }
 
-/** ONC-19 review gaps on EXITER's due, delegated position: non-ATA owner accounts, another market's buffer or pool. */
+/** Rejected account substitutions on EXITER's due, delegated position: non-ATA accounts, foreign buffer or pool. */
 async function smuggledAccountsRejected(ctx: Ctx, watched: PublicKey[]): Promise<void> {
   const { chain, A, B } = ctx
   const crank = A.traders[CRANKER]
@@ -390,7 +390,7 @@ async function smuggledAccountsRejected(ctx: Ctx, watched: PublicKey[]): Promise
 }
 
 /**
- * ONC-08: the market PDA's delegation over a holder's base ATA is spent only by auto_exit. `sell` swaps with the
+ * The market PDA's delegation over a holder's base ATA is spent only by auto_exit. `sell` swaps with the
  * signing user as DBC payer and never signs as the market, so a cranker naming the delegated victim's base ATA (with
  * its own position, or with the victim's) is rejected by the router before any transfer.
  */
@@ -409,7 +409,7 @@ async function delegateNotSpendableBySell(ctx: Ctx, watched: PublicKey[]): Promi
     "sell by a cranker naming the victim's position and market-delegated base ATA rejected")
 }
 
-/** ONC-19: a sell that empties a position clears its deadline, so a re-bought position cannot be auto-exited on the old one. */
+/** A sell that empties a position clears its deadline, so a re-bought position cannot be auto-exited on the old one. */
 async function fullSellClearsDeadline(ctx: Ctx): Promise<void> {
   const { chain, A } = ctx
   const seller = A.traders[FULL_SELLER]
@@ -438,7 +438,7 @@ async function fullSellClearsDeadline(ctx: Ctx): Promise<void> {
 }
 
 /**
- * ONC-19: a victim whose base ATA delegates to market A (deadline passed) and who also holds a due position in market B
+ * A victim whose base ATA delegates to market A (deadline passed) and who also holds a due position in market B
  * cannot be auto-exited through market B's accounts. Control: the same exit through A's own accounts succeeds.
  */
 async function crossMarketVictim(ctx: Ctx): Promise<void> {

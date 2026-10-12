@@ -1,14 +1,13 @@
 {
   "name": "litesvm-diff",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "LiteSVM differential replay and router behavior tests for Trucee",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "@meteora-ag/cp-amm-sdk": "^1.5.1",

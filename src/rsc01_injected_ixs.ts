@@ -1,5 +1,5 @@
 /**
- * RSC-01: do wallet-injected top-level instructions break the Zero-PvP hook?
+ * Do wallet-injected top-level instructions break the Zero-PvP hook?
  *
  * The hook allows a base-token transfer only when get_instruction_relative(0) (the top-level instruction that is
  * executing) belongs to the router. Wallets add their own top-level instructions (compute budget, memos, Phantom's
@@ -35,7 +35,7 @@ import {
   anchorError, check, createMarketFixture, disc, eventAuthority, meta, must, pda, poolAuthority, u64,
 } from './fixture'
 
-/** The card's public endpoint. Never read an RPC URL from out/*.json (it may carry a key). */
+/** The public devnet RPC used for read-only transaction simulation. Never read an RPC URL from out/*.json (it may carry a key). */
 const DEVNET_RPC = 'https://api.devnet.solana.com'
 const MEMO_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr')
 /** Lighthouse, the assertion program Phantom appends as "guard instructions" (same ID on devnet and mainnet). */

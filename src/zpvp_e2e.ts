@@ -20,7 +20,7 @@ import {
   createMarketFixture, must,
 } from './fixture'
 
-/** Anti-Whale (ONC-04) needs >= 5 positions to graduate a curve; 6 leaves headroom. */
+/** Anti-Whale needs >= 5 positions to graduate a curve; 6 leaves headroom. */
 const TRADERS = 6
 const TRADER_LAMPORTS_LIVE = 30_000_000n // 0.03 SOL: ATAs + position rent + fees
 const TRADER_LAMPORTS_SIM = 10n ** 15n
@@ -121,7 +121,7 @@ async function main(rpc: string | undefined) {
   const m = await createMarketFixture(chain, funder, scenario, {
     wsol, traderCount: TRADERS, signatures, configOverrides: antiDump ? ANTI_DUMP_OVERRIDES : undefined,
     traderLamports: !isLive ? TRADER_LAMPORTS_SIM : wsol ? liveWsolLamports : TRADER_LAMPORTS_LIVE,
-    // live: persist trader keys before funding so `sweep_traders.ts` can recover SOL if the run dies
+    // live: persist trader keys before funding so `reclaim_test_wallets.ts` can recover SOL if the run dies
     onTraders: isLive ? (ts) => writeFileSync(tradersPath(outPath), JSON.stringify(ts.map((t) => Array.from(t.secretKey)))) : undefined,
   })
   const { traders, ata, readPosition, balanceOf, positionOf } = m

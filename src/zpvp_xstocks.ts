@@ -25,7 +25,7 @@ import {
 } from './fixture'
 import { zpvpPrograms } from './zpvp_e2e'
 
-/** >= 6: anti-whale (ONC-04) caps one position at 20% of swap_base_amount, so graduation needs spread buys. */
+/** >= 6: anti-whale caps one position at 20% of swap_base_amount, so graduation needs spread buys. */
 const TRADERS = 8
 const TSLAX_PER_TRADER = 2n * 10n ** 8n // 2 TSLAx at 8 decimals
 const TRADER_LAMPORTS = 10n ** 12n
@@ -291,7 +291,7 @@ async function main() {
   const holdersWithTokens = positions.filter((p) => p.tokens > 0n).length
   check(await m.curveDone(), 'curve completed via router buys')
   check(holdersWithTokens >= 6 && largest * BPS <= swapBaseAmount * ANTI_WHALE_BPS,
-    'graduation spread: >= 6 holders, no position above 20% of swap_base_amount (ONC-04 ready)',
+    'graduation spread: >= 6 holders, no position above 20% of swap_base_amount (cap respected)',
     `holders=${holdersWithTokens} largest=${(Number(largest * BPS) / Number(swapBaseAmount) / 100).toFixed(2)}% of ${swapBaseAmount}`)
   const hookAfter = await transferHookOf(chain, m.baseMint.publicKey)
   check(!!hookBefore?.equals(HOOK_ID) && !!hookAfter?.equals(PublicKey.default), 'graduation revokes the hook',

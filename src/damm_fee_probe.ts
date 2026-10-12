@@ -2,20 +2,24 @@
  * Measures the fee a seller actually pays on a migrated DAMM v2 pool, via the SDK quote (same math as
  * the program), then pushes the price up with a real buy and measures again.
  *
- * Usage: npx tsx src/damm_fee_probe.ts DAMM_POOL [--push-quote LAMPORTS] [--rpc URL]
+ * Usage: npx tsx src/damm_fee_probe.ts DAMM_POOL [--push-quote LAMPORTS] [--rpc env]
+ * `--rpc env` reads DEVNET_RPC without exposing the URL in argv or output; defaults to the public devnet RPC.
  */
 import BN from 'bn.js'
 import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from '@solana/web3.js'
 import { getMint } from '@solana/spl-token'
 import { CpAmm } from '@meteora-ag/cp-amm-sdk'
-import { loadKeypair } from './chain'
+import { PUBLIC_DEVNET_RPC, UsageError, loadKeypair, runRpcScript } from './chain'
 
 const DUMP_SHARE_OF_BASE_RESERVE = 20 // sell 1/20 = 5% of the pool's base reserve
 
-async function main() {
+async function main(rpcArg: string | undefined) {
   const args = process.argv.slice(2)
   const flag = (n: string) => (args.includes(n) ? args[args.indexOf(n) + 1] : undefined)
-  const rpc = flag('--rpc') ?? 'https://api.devnet.solana.com'
+  if (!args[0] || args[0].startsWith('--')) {
+    throw new UsageError('usage: damm_fee_probe.ts DAMM_POOL [--push-quote LAMPORTS] [--rpc env]')
+  }
+  const rpc = rpcArg ?? PUBLIC_DEVNET_RPC
   const pool = new PublicKey(args[0])
   const pushQuote = flag('--push-quote')
   const connection = new Connection(rpc, 'confirmed')
@@ -58,4 +62,4 @@ async function main() {
   }
 }
 
-main().catch((e) => { console.error(e); process.exit(1) })
+runRpcScript(main)

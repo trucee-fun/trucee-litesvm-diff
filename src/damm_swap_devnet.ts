@@ -1,7 +1,8 @@
 /**
- * Proves the migrated Zero-PvP token trades on DAMM v2: buy then sell with a fresh wallet balance.
+ * Checks that the migrated Zero-PvP token can be bought and sold on DAMM v2 using the payer's wallet.
  *
- * Usage: npx tsx src/damm_swap_devnet.ts E2E_RESULT.json DAMM_POOL [--rpc URL]
+ * Usage: npx tsx src/damm_swap_devnet.ts E2E_RESULT.json DAMM_POOL [--rpc env]
+ * `--rpc env` reads DEVNET_RPC without exposing the URL in argv or output; defaults to the public devnet RPC.
  */
 import { readFileSync } from 'node:fs'
 import BN from 'bn.js'
@@ -12,14 +13,17 @@ import {
   createMintToInstruction, createSyncNativeInstruction, getAssociatedTokenAddressSync,
 } from '@solana/spl-token'
 import { CpAmm } from '@meteora-ag/cp-amm-sdk'
-import { loadKeypair } from './chain'
+import { PUBLIC_DEVNET_RPC, UsageError, loadKeypair, runRpcScript } from './chain'
 
 const BUY_QUOTE = new BN(1_000_000_000) // 1 quote token
 const BUY_QUOTE_WSOL = new BN(50_000_000) // 0.05 SOL when the quote is real SOL
 
-async function main() {
+async function main(rpcArg: string | undefined) {
   const args = process.argv.slice(2)
-  const rpc = args.includes('--rpc') ? args[args.indexOf('--rpc') + 1] : 'https://api.devnet.solana.com'
+  if (!args[0] || args[0].startsWith('--') || !args[1] || args[1].startsWith('--')) {
+    throw new UsageError('usage: damm_swap_devnet.ts E2E_RESULT.json DAMM_POOL [--rpc env]')
+  }
+  const rpc = rpcArg ?? PUBLIC_DEVNET_RPC
   const e2e = JSON.parse(readFileSync(args[0], 'utf8'))
   const pool = new PublicKey(args[1])
   const baseMint = new PublicKey(e2e.accounts.base_mint)
@@ -87,4 +91,4 @@ async function main() {
   if (bought.gtn(0)) await swap(baseMint, quoteMint, bought.divn(2), 'sell (base -> quote)')
 }
 
-main().catch((e) => { console.error(e); process.exit(1) })
+runRpcScript(main)

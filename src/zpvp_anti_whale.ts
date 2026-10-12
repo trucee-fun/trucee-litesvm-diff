@@ -1,5 +1,5 @@
 /**
- * Anti-Whale cap (ONC-04) on LiteSVM: router `buy` rejects (6022 PositionCapExceeded) any buy that would leave the
+ * Anti-Whale cap on LiteSVM: router `buy` rejects (6022 PositionCapExceeded) any buy that would leave the
  * buyer's position above ANTI_WHALE_BPS = 20% of the DBC config's swap_base_amount. The cap is a program constant, so
  * a curve needs at least 5 positions to graduate; here 6 traders graduate one, each at or below the cap.
  *

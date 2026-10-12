@@ -1,5 +1,5 @@
 /**
- * Zero-PvP preset (ONC-14) on LiteSVM. `init_market` opens a market only for a DBC config where no insider gets tokens
+ * Zero-PvP preset on LiteSVM. `init_market` opens a market only for a DBC config where no insider gets tokens
  * or pullable liquidity at graduation. That means no creator token allocation (locked vesting
  * amount_per_period == 0 and cliff_unlock_amount == 0), dynamic supply (fixed_token_supply_flag == 0, so nothing
  * leftover goes to leftover_receiver) and all LP permanently locked (partner_liquidity_percentage == 0,

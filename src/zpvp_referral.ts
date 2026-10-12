@@ -1,5 +1,5 @@
 /**
- * Native Referral (ONC-13) on LiteSVM. A router buy may name a referrer: its quote token account follows the three hook
+ * Native Referral on LiteSVM. A router buy may name a referrer: its quote token account follows the three hook
  * accounts as an optional 4th remaining account, and the router passes it to DBC as `referral_token_account`. DBC pays
  * its referral cut out of the protocol fee, so the buyer's net_into_curve, basis, tokens and later refund are the same
  * with or without a referrer. Sells and auto-exits take exactly the three hook accounts.
