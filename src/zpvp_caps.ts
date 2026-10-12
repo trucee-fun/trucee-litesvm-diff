@@ -1,7 +1,7 @@
 /**
  * Mainnet-beta launch caps, run against the default (capped) router build: only allowlisted quote mints, each with a
  * graduation threshold cap (wSOL 10 SOL, TSLAx 5 shares, NVDAx 10 shares), each probed exactly at the cap and one raw
- * unit above. xStocks are mainnet Token-2022 snapshots.
+ * unit above, and a 1% cap on the static fee, probed the same way. xStocks are mainnet Token-2022 snapshots.
  *
  * Usage: ROUTER_SO=programs/router_capped.so npx tsx src/zpvp_caps.ts SCENARIOS.json SMALL_SCENARIO.json
  */
@@ -21,6 +21,9 @@ const XSTOCK_CAPS: [XStock, bigint][] = [['TSLAx', 500_000_000n], ['NVDAx', 1_00
 const XSTOCK_DECIMALS = 8
 const QUOTE_MINT_NOT_ALLOWED = anchorError(6017, 'QuoteMintNotAllowed')
 const THRESHOLD_TOO_HIGH = anchorError(6018, 'ThresholdTooHigh')
+/** zpvp_router MAX_FEE_NUMERATOR: 1% of DBC's 1e9 fee denominator. */
+const MAX_FEE_NUMERATOR = 10_000_000
+const FEE_TOO_HIGH = anchorError(6024, 'FeeTooHigh')
 
 function result(r: TxResult, label: string, expected: RegExp | null): void {
   const ok = expected === null ? r.ok : !r.ok && expected.test(r.error)
@@ -29,6 +32,7 @@ function result(r: TxResult, label: string, expected: RegExp | null): void {
 
 const thresholdOf = (s: Scenario) => BigInt(s.migration_quote_threshold)
 const withThreshold = (s: Scenario, threshold: bigint): Scenario => ({ ...s, migration_quote_threshold: threshold.toString() })
+const withFee = (s: Scenario, feeNumerator: number): Scenario => ({ ...s, fee_numerator: feeNumerator })
 
 /** The scenario with the smallest threshold above `cap`: its curve is built for a threshold near the cap. */
 function smallestAbove(scenarios: Scenario[], cap: bigint, path: string): Scenario {
@@ -84,6 +88,10 @@ async function main() {
   result(await tryWsolAt(WSOL_CAP), `wSOL threshold ${WSOL_CAP} (exactly 10 SOL, as stored by DBC) accepted`, null)
   result(await tryWsolAt(WSOL_CAP + 1n), `wSOL threshold ${WSOL_CAP + 1n} (as stored by DBC) rejected 6018`, THRESHOLD_TOO_HIGH)
   result(await tryMarket(small, true), `wSOL, threshold ${sol(small)} accepted`, null)
+
+  // Fee cap: the same accepted wSOL config with its static fee exactly at 1% and one fee-numerator unit above
+  result(await tryMarket(withFee(small, MAX_FEE_NUMERATOR), true), `wSOL, fee ${MAX_FEE_NUMERATOR} (exactly 1%) accepted`, null)
+  result(await tryMarket(withFee(small, MAX_FEE_NUMERATOR + 1), true), `wSOL, fee ${MAX_FEE_NUMERATOR + 1} rejected 6024`, FEE_TOO_HIGH)
 
   // xStock quotes: allowlisted, each with its own threshold cap; probed exactly at the cap and one raw unit above
   const tryQuote = async (threshold: bigint, quote: QuoteOptions) => {
